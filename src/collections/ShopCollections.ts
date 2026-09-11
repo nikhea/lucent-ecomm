@@ -68,14 +68,7 @@ export const ShopCollections: CollectionConfig = {
       type: 'number',
       admin: { readOnly: true, hidden: true },
       hooks: {
-        beforeChange: [
-          ({ data }: { data?: any }) => {
-            if (!data) return data
-            if (Array.isArray(data?.products)) data.productsCount = data.products.length
-            else data.productsCount = 0
-            return data
-          },
-        ],
+        beforeChange: [({ data }: { data?: any }) => (Array.isArray(data?.products) ? data.products.length : 0)],
       },
     },
     {
