@@ -43,6 +43,10 @@ const nextConfig: NextConfig = {
         hostname: 'assets.shadcnstore.com',
         protocol: 'https',
       },
+      {
+        hostname: 'notion-avatars.netlify.app',
+        protocol: 'https',
+      },
     ],
   },
   reactStrictMode: true,

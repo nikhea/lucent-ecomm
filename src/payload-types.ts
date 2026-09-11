@@ -547,6 +547,7 @@ export interface Page {
     | ReviewsBlock
     | PromoGridBlock
     | HeroFashionBlock
+    | CategoryShowcaseBlock
   )[];
   meta?: {
     title?: string | null;
@@ -1021,6 +1022,27 @@ export interface HeroFashionBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'heroFashion';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryShowcaseBlock".
+ */
+export interface CategoryShowcaseBlock {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  items: {
+    title: string;
+    count: string;
+    image: string | Media;
+    link: {
+      url: string;
+    };
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'categoryShowcase';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1758,6 +1780,7 @@ export interface PagesSelect<T extends boolean = true> {
         reviews?: T | ReviewsBlockSelect<T>;
         promoGrid?: T | PromoGridBlockSelect<T>;
         heroFashion?: T | HeroFashionBlockSelect<T>;
+        categoryShowcase?: T | CategoryShowcaseBlockSelect<T>;
       };
   meta?:
     | T
@@ -1978,6 +2001,30 @@ export interface HeroFashionBlockSelect<T extends boolean = true> {
         title?: T;
         subtitle?: T;
         value?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryShowcaseBlock_select".
+ */
+export interface CategoryShowcaseBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  subtitle?: T;
+  items?:
+    | T
+    | {
+        title?: T;
+        count?: T;
+        image?: T;
+        link?:
+          | T
+          | {
+              url?: T;
+            };
         id?: T;
       };
   id?: T;

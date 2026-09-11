@@ -10,6 +10,7 @@ import { NewsletterBannerBlock } from '@/blocks/NewsletterBanner/Component'
 import { ReviewsBlock } from '@/blocks/Reviews/Component'
 import { PromoGridBlock } from '@/blocks/PromoGrid/Component'
 import { HeroFashionBlock } from '@/blocks/HeroFashion/Component'
+import { CategoryShowcaseBlock } from '@/blocks/CategoryShowcase/Component'
 import { toKebabCase } from '@/utilities/toKebabCase'
 import React, { Fragment } from 'react'
 
@@ -28,6 +29,7 @@ const blockComponents = {
   reviews: ReviewsBlock,
   promoGrid: PromoGridBlock,
   heroFashion: HeroFashionBlock,
+  categoryShowcase: CategoryShowcaseBlock,
 }
 
 export const RenderBlocks: React.FC<{
@@ -47,7 +49,7 @@ export const RenderBlocks: React.FC<{
             const Block = blockComponents[blockType]
 
             if (Block) {
-              const isFullBleed = blockType === 'newsletterBanner' || blockType === 'reviews' || blockType === 'promoGrid' || blockType === 'heroFashion'
+              const isFullBleed = blockType === 'newsletterBanner' || blockType === 'reviews' || blockType === 'promoGrid' || blockType === 'heroFashion' || blockType === 'categoryShowcase'
               return (
                 <div className={isFullBleed ? '' : 'my-16'} key={index}>
                   {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}

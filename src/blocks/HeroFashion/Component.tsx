@@ -26,16 +26,16 @@ export function HeroFashionBlock(props: HeroFashionBlock) {
     <div className="bg-white dark:bg-background">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          <div className="flex flex-col gap-6 pt-2">
+          <div className="flex flex-col gap-6 pt-2 items-center lg:items-start text-center lg:text-left">
             {props.eyebrow && (
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full w-fit hover:bg-muted/80"
+                className="inline-flex items-center gap-1 text-xs font-medium bg-muted px-3 py-1.5 rounded-full w-fit hover:bg-muted/80 mx-auto lg:mx-0"
               >
                 {props.eyebrow} <span>›</span>
               </Link>
             )}
-            <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl text-center lg:text-left">
               {(() => {
                 const words = (props.title || '').split(' ')
                 const lastTwo = words.slice(-2).join(' ')
@@ -47,26 +47,26 @@ export function HeroFashionBlock(props: HeroFashionBlock) {
                 )
               })()}
             </h1>
-            <p className="text-muted-foreground mx-auto max-w-2xl text-lg leading-relaxed md:mx-0">{props.description}</p>
+            <p className="text-muted-foreground mx-auto max-w-2xl text-lg leading-relaxed lg:mx-0 text-center lg:text-left">{props.description}</p>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center lg:justify-start">
               <Link
                 href={props.primaryLink?.url || '/shop'}
-                className="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-black text-white hover:bg-black/90 border-black gap-1.5 h-12 cursor-pointer px-4 text-base font-medium"
+                className="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-black text-white hover:bg-black/90 border-black gap-1.5 h-12 cursor-pointer px-4 text-base font-medium w-full sm:w-auto"
               >
                 {props.primaryLink?.label || 'Shop Now'} <span>›</span>
               </Link>
               <Link
                 href={props.secondaryLink?.url || '/shop'}
-                className="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 border-border bg-background hover:bg-muted hover:text-foreground gap-1.5 h-12 cursor-pointer px-4 text-base font-medium"
+                className="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 border-border bg-background hover:bg-muted hover:text-foreground gap-1.5 h-12 cursor-pointer px-4 text-base font-medium w-full sm:w-auto justify-center"
               >
                 {props.secondaryLink?.label || 'View Lookbook'}
               </Link>
             </div>
 
-            <div className="pt-2">
-              <div className="text-muted-foreground mb-3 text-sm font-medium">{props.trustText}</div>
-              <div className="flex items-center gap-3">
+            <div className="pt-2 flex flex-col items-center lg:items-start w-full">
+              <div className="text-muted-foreground mb-3 text-sm font-medium text-center lg:text-left">{props.trustText}</div>
+              <div className="flex items-center gap-3 justify-center lg:justify-start">
                 <div className="flex -space-x-3">
                   {avatarUrls.map((url, i) => (
                     <span key={i} className="h-10 w-10 rounded-full border-2 border-white overflow-hidden bg-sky-50 shadow-sm">
@@ -89,10 +89,10 @@ export function HeroFashionBlock(props: HeroFashionBlock) {
                   {props.badgeText}
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-white/30 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-white/10 via-transparent to-transparent pointer-events-none" />
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {features.slice(0, 4).map((f: any) => (
                 <div key={f.id} className="rounded-xl border bg-white dark:bg-card p-4 flex flex-col gap-2">
                   <span className="h-7 w-7 rounded-full bg-muted flex items-center justify-center text-muted-foreground">

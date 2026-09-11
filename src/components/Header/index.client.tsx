@@ -14,6 +14,7 @@ import type { Header, Category, ShopCollection, Product } from 'src/payload-type
 
 import { LogoIcon } from '@/components/icons/logo'
 import { ShoppingBag, ShoppingCart } from 'lucide-react'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/providers/Auth'
 
 type Props = {
@@ -82,6 +83,7 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
+          <ThemeToggle />
           <Suspense fallback={<OpenCartButton />}>
             <div className="relative flex items-center gap-2">
               <Link href="/cart" className="relative p-2">
