@@ -35,7 +35,7 @@ export const seedHomeSections = async ({ payload, req }: { payload: Payload; req
         slug: 'home',
         _status: 'published',
         hero: { type: 'lowImpact', richText: { root: { type: 'root', children: [{ type: 'heading', children: [{ type: 'text', detail: 0, format: 0, mode: 'normal', style: '', text: 'Welcome to Lucent', version: 1 }], direction: 'ltr', format: '', indent: 0, tag: 'h1', version: 1 }], direction: 'ltr', format: '', indent: 0, version: 1 } } },
-        layout: [newsletterBlock, reviewsBlock],
+        layout: [reviewsBlock, newsletterBlock],
         meta: { title: 'Lucent - Female Fashion', description: 'Modern womenswear' },
       } as any,
       req,
@@ -43,40 +43,92 @@ export const seedHomeSections = async ({ payload, req }: { payload: Payload; req
       depth: 0,
       context: { disableRevalidate: true },
     })
-    payload.logger.info('  created home with newsletter + reviews')
+    payload.logger.info('  created home with reviews + newsletter')
     return
   }
 
   const hasNewsletter = home.layout?.some((b: any) => b.blockType === 'newsletterBanner')
   const hasReviews = home.layout?.some((b: any) => b.blockType === 'reviews')
 
-  const newBlocks: any[] = []
+  // Fix order if both exist but newsletter is before reviews (should be reviews -> newsletter)
+  const hasBoth = hasNewsletter && hasReviews
+  if (hasBoth) {
+    const layout = home.layout as any[]
+    const idxNewsletter = layout.findIndex((b: any) => b.blockType === 'newsletterBanner')
+    const idxReviews = layout.findIndex((b: any) => b.blockType === 'reviews')
+    if (idxNewsletter !== -1 && idxReviews !== -1 && idxNewsletter < idxReviews) {
+      payload.logger.info('  fixing order: reviews should be before newsletter')
+      const newsletter = layout[idxNewsletter]
+      const reviews = layout[idxReviews]
+      const withoutBoth = layout.filter((_: any, i: number) => i !== idxNewsletter && i !== idxReviews)
+      // keep other blocks first, then reviews, then newsletter
+      const reordered = [...withoutBoth, reviews, newsletter]
+      await payload.update({
+        collection: 'pages',
+        id: home.id,
+        data: { layout: reordered } as any,
+        req,
+        overrideAccess: true,
+        depth: 0,
+        context: { disableRevalidate: true },
+      })
+      payload.logger.info('  reordered home: reviews -> newsletter, no gaps')
+      return
+    }
+  }
 
-  if (!hasNewsletter) {
-    newBlocks.push(newsletterBlock)
-    payload.logger.info('  adding newsletterBanner block')
-  } else payload.logger.info('  newsletterBanner already exists, skipping')
-
-  if (!hasReviews) {
-    newBlocks.push(reviewsBlock)
-    payload.logger.info('  adding reviews block')
-  } else payload.logger.info('  reviews block already exists, skipping')
-
-  if (newBlocks.length === 0) {
-    payload.logger.info('  no new blocks to add')
+  // Add missing blocks in correct order (reviews -> newsletter)
+  if (!hasNewsletter && !hasReviews) {
+    await payload.update({
+      collection: 'pages',
+      id: home.id,
+      data: { layout: [...(home.layout || []), reviewsBlock, newsletterBlock] } as any,
+      req,
+      overrideAccess: true,
+      depth: 0,
+      context: { disableRevalidate: true },
+    })
+    payload.logger.info('  added reviews + newsletter (reviews on top)')
     return
   }
 
-  await payload.update({
-    collection: 'pages',
-    id: home.id,
-    data: { layout: [...(home.layout || []), ...newBlocks] } as any,
-    req,
-    overrideAccess: true,
-    depth: 0,
-    context: { disableRevalidate: true },
-  })
-  payload.logger.info(`  updated home with ${newBlocks.length} blocks`)
+  if (!hasReviews && hasNewsletter) {
+    const layout = home.layout as any[]
+    const idxNewsletter = layout.findIndex((b: any) => b.blockType === 'newsletterBanner')
+    const newLayout = [...layout]
+    newLayout.splice(idxNewsletter, 0, reviewsBlock)
+    await payload.update({
+      collection: 'pages',
+      id: home.id,
+      data: { layout: newLayout } as any,
+      req,
+      overrideAccess: true,
+      depth: 0,
+      context: { disableRevalidate: true },
+    })
+    payload.logger.info('  inserted reviews before newsletter')
+    return
+  }
+
+  if (!hasNewsletter && hasReviews) {
+    const layout = home.layout as any[]
+    const idxReviews = layout.findIndex((b: any) => b.blockType === 'reviews')
+    const newLayout = [...layout]
+    newLayout.splice(idxReviews + 1, 0, newsletterBlock)
+    await payload.update({
+      collection: 'pages',
+      id: home.id,
+      data: { layout: newLayout } as any,
+      req,
+      overrideAccess: true,
+      depth: 0,
+      context: { disableRevalidate: true },
+    })
+    payload.logger.info('  inserted newsletter after reviews')
+    return
+  }
+
+  payload.logger.info('  no new blocks to add')
 }
 
 export default seedHomeSections
