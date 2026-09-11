@@ -11,6 +11,14 @@ const iconMap: Record<string, React.ReactNode> = {
   refresh: <RefreshCw className="h-4 w-4" />,
 }
 
+const avatarUrls = [
+  'https://notion-avatars.netlify.app/api/avatar?preset=male-1',
+  'https://notion-avatars.netlify.app/api/avatar?preset=female-2',
+  'https://notion-avatars.netlify.app/api/avatar?preset=female-4',
+  'https://notion-avatars.netlify.app/api/avatar?preset=male-3',
+  'https://notion-avatars.netlify.app/api/avatar?preset=female-5',
+]
+
 export function HeroFashionBlock(props: HeroFashionBlock) {
   const features = (props.features || []) as any[]
 
@@ -27,7 +35,7 @@ export function HeroFashionBlock(props: HeroFashionBlock) {
                 {props.eyebrow} <span>›</span>
               </Link>
             )}
-            <h1 className="text-4xl md:text-5xl lg:text-[48px] font-bold leading-[1.05] tracking-tight">
+            <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl md:text-6xl lg:text-7xl">
               {(() => {
                 const words = (props.title || '').split(' ')
                 const lastTwo = words.slice(-2).join(' ')
@@ -39,30 +47,34 @@ export function HeroFashionBlock(props: HeroFashionBlock) {
                 )
               })()}
             </h1>
-            <p className="text-sm md:text-base text-muted-foreground max-w-[480px] leading-relaxed">{props.description}</p>
+            <p className="text-muted-foreground mx-auto max-w-2xl text-lg leading-relaxed md:mx-0">{props.description}</p>
 
             <div className="flex gap-3">
-              <Button asChild className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black">
-                <Link href={props.primaryLink?.url || '/shop'}>
-                  {props.primaryLink?.label || 'Shop Now'} <span className="ml-1">›</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href={props.secondaryLink?.url || '/shop'}>{props.secondaryLink?.label || 'View Lookbook'}</Link>
-              </Button>
+              <Link
+                href={props.primaryLink?.url || '/shop'}
+                className="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-black text-white hover:bg-black/90 border-black gap-1.5 h-12 cursor-pointer px-4 text-base font-medium"
+              >
+                {props.primaryLink?.label || 'Shop Now'} <span>›</span>
+              </Link>
+              <Link
+                href={props.secondaryLink?.url || '/shop'}
+                className="group/button inline-flex shrink-0 items-center justify-center rounded-lg border bg-clip-padding whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 border-border bg-background hover:bg-muted hover:text-foreground gap-1.5 h-12 cursor-pointer px-4 text-base font-medium"
+              >
+                {props.secondaryLink?.label || 'View Lookbook'}
+              </Link>
             </div>
 
             <div className="pt-2">
-              <div className="text-xs text-muted-foreground">{props.trustText}</div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex -space-x-2">
-                  {[0, 1, 2, 3, 4].map((i) => (
-                    <span key={i} className="h-7 w-7 rounded-full border-2 border-white bg-muted flex items-center justify-center text-[10px] overflow-hidden">
-                      <span className="h-full w-full bg-gradient-to-br from-neutral-200 to-neutral-400" />
+              <div className="text-muted-foreground mb-3 text-sm font-medium">{props.trustText}</div>
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-3">
+                  {avatarUrls.map((url, i) => (
+                    <span key={i} className="h-10 w-10 rounded-full border-2 border-white overflow-hidden bg-sky-50 shadow-sm">
+                      <img src={url} alt="" className="aspect-square size-full rounded-full object-cover" />
                     </span>
                   ))}
                 </div>
-                <span className="text-xs font-medium">{props.trustRating}</span>
+                <span className="text-sm font-medium">{props.trustRating}</span>
               </div>
             </div>
           </div>
