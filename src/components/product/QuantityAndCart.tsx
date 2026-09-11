@@ -32,34 +32,34 @@ export function QuantityAndCart({ product }: { product: Product }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex gap-2">
-        <div className="flex items-center rounded-lg border border-white/20 overflow-hidden">
-          <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="h-10 w-10 flex items-center justify-center hover:bg-white/10">
+        <div className="flex items-center rounded-lg border overflow-hidden">
+          <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="h-10 w-10 flex items-center justify-center hover:bg-muted">
             <Minus className="h-4 w-4" />
           </button>
-          <span className="h-10 w-10 flex items-center justify-center text-sm bg-white/10">{qty}</span>
-          <button onClick={() => setQty((q) => q + 1)} className="h-10 w-10 flex items-center justify-center hover:bg-white/10">
+          <span className="h-10 w-10 flex items-center justify-center text-sm bg-muted">{qty}</span>
+          <button onClick={() => setQty((q) => q + 1)} className="h-10 w-10 flex items-center justify-center hover:bg-muted">
             <Plus className="h-4 w-4" />
           </button>
         </div>
-        <Button onClick={onAdd} disabled={!!isLoading || !!(product.enableVariants && !selectedVariant)} className="flex-1 h-10 bg-white text-black hover:bg-white/90">
+        <Button onClick={onAdd} disabled={!!isLoading || !!(product.enableVariants && !selectedVariant)} className="flex-1 h-10">
           <ShoppingBag className="h-4 w-4 mr-2" /> Add to Cart
         </Button>
       </div>
-      <Button variant="outline" className="w-full border-white/20 bg-transparent text-white hover:bg-white/10 hover:text-white h-10">
+      <Button variant="outline" className="w-full h-10">
         <Heart className="h-4 w-4 mr-2" /> Add to Wishlist
       </Button>
       <div className="grid grid-cols-3 gap-2 mt-2">
-        <div className="rounded-lg border border-white/10 p-3 text-center">
+        <div className="rounded-lg border p-3 text-center">
           <div className="text-xs font-medium">Free Shipping</div>
-          <div className="text-[10px] text-white/60">2-day on orders $99+</div>
+          <div className="text-[10px] text-muted-foreground">2-day on orders $99+</div>
         </div>
-        <div className="rounded-lg border border-white/10 p-3 text-center">
+        <div className="rounded-lg border p-3 text-center">
           <div className="text-xs font-medium">30-Day Returns</div>
-          <div className="text-[10px] text-white/60">Used returns accepted</div>
+          <div className="text-[10px] text-muted-foreground">Used returns accepted</div>
         </div>
-        <div className="rounded-lg border border-white/10 p-3 text-center">
+        <div className="rounded-lg border p-3 text-center">
           <div className="text-xs font-medium">2-Year Warranty</div>
-          <div className="text-[10px] text-white/60">Free repair, free swap</div>
+          <div className="text-[10px] text-muted-foreground">Free repair, free swap</div>
         </div>
       </div>
     </div>

@@ -1,57 +1,54 @@
 import React from 'react'
 
-const sections = [
+import type { Product } from '@/payload-types'
+
+const fallbackSections = [
   {
-    title: 'IN THE BOX',
+    title: 'DETAILS',
     rows: [
-      ['Headphones', 'Atlas Pro, hand-tuned at the factory'],
-      ['Carrying case', 'Felted wool with magnetic closure'],
-      ['Cables', 'USB-C charge cable, 3.5 mm audio cable'],
-      ['Adapter', 'Airline 3.5 mm dual-plug adapter'],
+      ['Fit', 'True to size, model is 178cm wearing size S'],
+      ['Length', 'Midi / Maxi available, see size guide'],
+      ['Care', 'Machine wash cold, hang dry'],
     ],
   },
   {
-    title: 'AUDIO',
+    title: 'FABRIC & CARE',
     rows: [
-      ['Drivers', '40 mm beryllium-coated dynamic'],
-      ['Frequency response', '10 Hz - 40 kHz'],
-      ['Impedance', '32 Ω, 110 dB SPL/mW'],
-      ['Codecs', 'LDAC · aptX Adaptive · AAC · SBC'],
+      ['Fabric', 'Premium blend, breathable and soft'],
+      ['Weight', 'Lightweight, 180 GSM'],
+      ['Origin', 'Designed in-house, ethically made'],
     ],
   },
   {
-    title: 'BUILD & FIT',
+    title: 'SHIPPING',
     rows: [
-      ['Frame', 'CNC-machined 6061 aluminum, brushed finish'],
-      ['Ear pads', 'Replaceable memory foam, vegan leather'],
-      ['Weight', '278 g · 9.8 oz'],
-      ['Foldable', 'Flat-folding, gimballed yokes'],
-    ],
-  },
-  {
-    title: 'CONNECTIVITY',
-    rows: [
-      ['Wireless', 'Bluetooth 5.3, multipoint to 2 devices'],
-      ['Wired', 'USB-C (24-bit/96 kHz) + 3.5 mm analog'],
-      ['Battery', '40 h (ANC off), 30 h (ANC on)'],
-      ['Charge time', 'Full: 90 min · Quick: 3 h in 5 min'],
+      ['Delivery', 'Free shipping over $99, 2-3 business days'],
+      ['Returns', '30-day free returns, tags attached'],
     ],
   },
 ]
 
-export function Specifications() {
+export function Specifications({ product }: { product?: Product }) {
+  const sections = ((product as any)?.specifications as { group: string; rows: { label: string; value: string }[] }[]) || []
+  const displaySections =
+    sections.length > 0
+      ? sections.map((s) => ({ title: s.group, rows: s.rows.map((r) => [r.label, r.value] as [string, string]) }))
+      : fallbackSections
+
+  const title = displaySections.length ? 'Product Details' : 'Built Like A Pro Tool, Tuned For Daily Use'
+
   return (
-    <div className="pt-10 mt-10 border-t border-white/10">
-      <div className="text-xs tracking-widest text-white/50 mb-2">SPECIFICATIONS</div>
-      <h2 className="text-2xl font-bold mb-6">Built Like A Pro Tool, Tuned For Daily Use</h2>
-      <div className="rounded-xl border border-white/10 overflow-hidden">
-        {sections.map((sec) => (
+    <div className="pt-10 mt-10 border-t">
+      <div className="text-xs tracking-widest text-muted-foreground mb-2">SPECIFICATIONS</div>
+      <h2 className="text-2xl font-bold mb-6">{title}</h2>
+      <div className="rounded-xl border overflow-hidden">
+        {displaySections.map((sec) => (
           <div key={sec.title}>
-            <div className="bg-white/[0.04] px-4 py-2 text-xs font-semibold tracking-widest">{sec.title}</div>
+            <div className="bg-muted px-4 py-2 text-xs font-semibold tracking-widest">{sec.title}</div>
             {sec.rows.map(([k, v]) => (
-              <div key={k} className="grid grid-cols-2 px-4 py-3 border-t border-white/10 text-sm">
-                <div className="text-white/60">{k}</div>
-                <div className="text-white">{v}</div>
+              <div key={k} className="grid grid-cols-2 px-4 py-3 border-t text-sm">
+                <div className="text-muted-foreground">{k}</div>
+                <div className="text-foreground">{v}</div>
               </div>
             ))}
           </div>

@@ -38,7 +38,7 @@ export function GalleryDark({ gallery }: Props) {
             <button
               key={`${img.id}-${i}`}
               onClick={() => setCurrent(i)}
-              className={cn('relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-white', i === current ? 'border-white ring-2 ring-white' : 'border-transparent opacity-70 hover:opacity-100')}
+              className={cn('relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-white', i === current ? 'border-black ring-2 ring-black' : 'border-transparent opacity-70 hover:opacity-100')}
             >
               <Media resource={img} className="h-full w-full" imgClassName="h-full w-full object-cover" />
             </button>

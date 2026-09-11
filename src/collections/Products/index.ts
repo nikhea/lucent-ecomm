@@ -50,8 +50,12 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     enableVariants: true,
     gallery: true,
     priceInUSD: true,
+    compareAtPriceInUSD: true,
     inventory: true,
     meta: true,
+    sku: true,
+    brand: true,
+    shortDescription: true,
   },
   fields: [
     { name: 'title', type: 'text', required: true },
@@ -143,6 +147,75 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
         {
           fields: [
             ...defaultCollection.fields,
+            {
+              name: 'sku',
+              type: 'text',
+              unique: true,
+              index: true,
+              admin: { description: 'Stock keeping unit, e.g. AERIAL-APW-22', position: 'sidebar' },
+            },
+            {
+              name: 'brand',
+              type: 'text',
+              defaultValue: 'Lucent',
+              admin: { description: 'Brand name shown as By ...', position: 'sidebar' },
+            },
+            {
+              name: 'compareAtPriceInUSD',
+              type: 'number',
+              admin: { description: 'Original price for discount badge (cents), e.g. 39900 for $399', position: 'sidebar' },
+              min: 0,
+            },
+            {
+              name: 'shortDescription',
+              type: 'textarea',
+              admin: { description: 'One-liner under title, e.g. Over-ear wireless headphones...' },
+              maxLength: 300,
+            },
+            {
+              name: 'overviewTitle',
+              type: 'text',
+              defaultValue: 'A Flagship Over-Ear, Refined Twice',
+              admin: { description: 'Overview section heading' },
+            },
+            {
+              name: 'overviewContent',
+              type: 'richText',
+              editor: lexicalEditor({
+                features: ({ rootFeatures }) => {
+                  return [...rootFeatures, HeadingFeature({ enabledHeadingSizes: ['h3'] }), FixedToolbarFeature(), InlineToolbarFeature()]
+                },
+              }),
+              admin: { description: 'Left column overview text' },
+            },
+            {
+              name: 'overviewFeatures',
+              type: 'array',
+              label: 'Overview Features',
+              admin: { description: 'Right column 4 bullet points' },
+              fields: [
+                { name: 'title', type: 'text', required: true },
+                { name: 'description', type: 'textarea', required: true },
+              ],
+              maxRows: 4,
+            },
+            {
+              name: 'specifications',
+              type: 'array',
+              label: 'Specifications',
+              admin: { description: 'Grouped table, use Group title as section header' },
+              fields: [
+                { name: 'group', type: 'text', required: true, admin: { description: 'e.g. IN THE BOX / AUDIO' } },
+                {
+                  name: 'rows',
+                  type: 'array',
+                  fields: [
+                    { name: 'label', type: 'text', required: true },
+                    { name: 'value', type: 'text', required: true },
+                  ],
+                },
+              ],
+            },
             {
               name: 'relatedProducts',
               type: 'relationship',

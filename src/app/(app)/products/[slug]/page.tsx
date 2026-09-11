@@ -9,6 +9,7 @@ import { QuantityAndCart } from '@/components/product/QuantityAndCart'
 import { Overview } from '@/components/product/Overview'
 import { Specifications } from '@/components/product/Specifications'
 import { RelatedDark } from '@/components/product/RelatedDark'
+import { ReviewsSection } from '@/components/product/ReviewsSection'
 import { Price } from '@/components/Price'
 import { Star } from 'lucide-react'
 import configPromise from '@payload-config'
@@ -113,55 +114,61 @@ export default async function ProductPage({ params }: Args) {
     },
   }
 
-  const relatedProducts =
-    product.relatedProducts?.filter((relatedProduct) => typeof relatedProduct === 'object') ?? []
+  let relatedProducts = product.relatedProducts?.filter((relatedProduct) => typeof relatedProduct === 'object') ?? []
+
+  if (!relatedProducts.length) {
+    const fallback = await getPayload({ config: configPromise }).then((p) =>
+      p.find({ collection: 'products', where: { and: [{ id: { not_equals: product.id } }, { _status: { equals: 'published' } }] }, limit: 4, depth: 1, overrideAccess: true }),
+    )
+    relatedProducts = fallback.docs as any[]
+  }
 
   const categoriesForBreadcrumb = (product.categories || [])
     .filter((c): c is Media | any => typeof c === 'object')
     .map((c: any) => ({ title: c.title, slug: c.slug }))
-  const sku = `AERIAL-${product.slug?.slice(0, 3).toUpperCase()}-${String(product.id).slice(-2).toUpperCase()}`
-  const comparePrice = price ? price + Math.round(price * 0.13) : null
-  const discount = comparePrice ? Math.round(((comparePrice - (price || 0)) / comparePrice) * 100) : 0
+  const sku = (product as any).sku || `${String((product as any).brand || 'LUCENT').slice(0, 3).toUpperCase()}-${product.slug?.slice(0, 3).toUpperCase()}-${String(product.id).slice(-2).toUpperCase()}`
+  const brand = (product as any).brand || 'Lucent'
+  const shortDesc = (product as any).shortDescription || (product as any).meta?.description || `Premium ${categoriesForBreadcrumb[0]?.title || 'fashion'} piece, designed in-house for Lucent.`
+  const comparePrice = (product as any).compareAtPriceInUSD || (price ? price + Math.round(price * 0.2) : null)
+  const discount = comparePrice && price ? Math.round(((comparePrice - price) / comparePrice) * 100) : 0
 
   return (
     <React.Fragment>
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} type="application/ld+json" />
-      <div className="bg-[#0a0a0a] text-white min-h-screen">
+      <div className="bg-white text-foreground min-h-screen">
         <div className="container pt-6 pb-12">
           <Breadcrumbs productTitle={product.title} categories={categoriesForBreadcrumb as any} />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
             <div>
-              <Suspense fallback={<div className="aspect-square bg-white rounded-xl" />}>
+              <Suspense fallback={<div className="aspect-square bg-muted rounded-xl" />}>
                 {Boolean(gallery?.length) && <GalleryDark gallery={gallery as any} />}
               </Suspense>
             </div>
 
             <div className="flex flex-col gap-5">
-              <div className="text-xs text-white/50">
-                {(categoriesForBreadcrumb[0]?.title || 'Audio') + ' • ' + (categoriesForBreadcrumb[0]?.title ? 'Headphones' : 'Products')}
+              <div className="text-xs text-muted-foreground">
+                {(categoriesForBreadcrumb[0]?.title || 'Women') + ' • ' + (categoriesForBreadcrumb[1]?.title || categoriesForBreadcrumb[0]?.title || 'Fashion')}
               </div>
               <h1 className="text-3xl font-bold leading-tight">{product.title}</h1>
-              <div className="inline-flex text-[10px] tracking-widest bg-white/10 px-2 py-1 rounded">SKU: {sku}</div>
+              <div className="inline-flex text-[10px] tracking-widest bg-muted px-2 py-1 rounded">SKU: {sku}</div>
 
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-white/60">By Aerial</span>
+                <span className="text-muted-foreground">By {brand}</span>
                 <span className="flex text-yellow-400">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`h-3.5 w-3.5 ${i < 4 ? 'fill-yellow-400' : 'fill-white/20'}`} />
+                    <Star key={i} className={`h-3.5 w-3.5 ${i < 4 ? 'fill-yellow-400' : 'fill-muted'}`} />
                   ))}
                 </span>
-                <span className="text-white">4.7</span>
-                <span className="text-white/60">(412 reviews)</span>
+                <span className="text-foreground">4.7</span>
+                <span className="text-muted-foreground">(412 reviews)</span>
               </div>
 
-              <p className="text-sm text-white/70 leading-relaxed">
-                {(product as any).meta?.description || 'Over-ear wireless headphones with 40-hour battery, hybrid active noise cancellation, and a hand-finished aluminum frame.'}
-              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{shortDesc}</p>
 
               <div className="flex items-baseline gap-2">
-                {price && <span className="text-xl font-bold">${(price / 100).toFixed(0)}</span>}
-                {comparePrice && <span className="text-sm line-through text-white/40">${(comparePrice / 100).toFixed(0)}</span>}
+                {price && <span className="text-xl font-bold">${(price / 100).toFixed(2)}</span>}
+                {comparePrice && comparePrice !== price && <span className="text-sm line-through text-muted-foreground">${(comparePrice / 100).toFixed(2)}</span>}
                 {discount > 0 && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">{discount}% OFF</span>}
               </div>
 
@@ -172,8 +179,13 @@ export default async function ProductPage({ params }: Args) {
           </div>
 
           <Overview product={product} />
-          <Specifications />
-          {relatedProducts.length ? <RelatedDark products={relatedProducts as Product[]} /> : null}
+          <Specifications product={product} />
+          <ReviewsSection product={product} />
+          {relatedProducts.length ? (
+            <RelatedDark products={relatedProducts as Product[]} />
+          ) : (
+            <RelatedDark products={[]} />
+          )}
         </div>
       </div>
 

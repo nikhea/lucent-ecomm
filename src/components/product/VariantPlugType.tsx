@@ -34,11 +34,11 @@ export function VariantPlugType({ product }: { product: Product }) {
               }}
               className={cn(
                 'relative flex-1 rounded-lg border px-3 py-2 text-xs font-medium',
-                active ? 'bg-white text-black border-white' : 'bg-transparent border-white/20 text-white hover:bg-white/10',
+                active ? 'bg-black text-white border-black' : 'bg-white border text-foreground hover:bg-muted',
               )}
             >
               {opt.label}
-              {active && <Check className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-white text-black p-0.5 border" />}
+              {active && <Check className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-black text-white p-0.5 border" />}
             </button>
           )
         })}

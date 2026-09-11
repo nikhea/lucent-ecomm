@@ -41,7 +41,7 @@ export function VariantColor({ product }: { product: Product }) {
                 params.delete('variant')
                 router.replace(`${pathname}?${params.toString()}`, { scroll: false })
               }}
-              className={cn('h-8 w-8 rounded-full border-2', colorMap[opt.value] || 'bg-muted', active ? 'ring-2 ring-white border-white' : 'border-transparent')}
+              className={cn('h-8 w-8 rounded-full border-2', colorMap[opt.value] || 'bg-muted', active ? 'ring-2 ring-black border-black' : 'border-muted')}
               aria-label={opt.label}
               title={opt.label}
             />

@@ -327,6 +327,73 @@ export interface Product {
   };
   priceInUSDEnabled?: boolean | null;
   priceInUSD?: number | null;
+  /**
+   * Stock keeping unit, e.g. AERIAL-APW-22
+   */
+  sku?: string | null;
+  /**
+   * Brand name shown as By ...
+   */
+  brand?: string | null;
+  /**
+   * Original price for discount badge (cents), e.g. 39900 for $399
+   */
+  compareAtPriceInUSD?: number | null;
+  /**
+   * One-liner under title, e.g. Over-ear wireless headphones...
+   */
+  shortDescription?: string | null;
+  /**
+   * Overview section heading
+   */
+  overviewTitle?: string | null;
+  /**
+   * Left column overview text
+   */
+  overviewContent?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Right column 4 bullet points
+   */
+  overviewFeatures?:
+    | {
+        title: string;
+        description: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Grouped table, use Group title as section header
+   */
+  specifications?:
+    | {
+        /**
+         * e.g. IN THE BOX / AUDIO
+         */
+        group: string;
+        rows?:
+          | {
+              label: string;
+              value: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   relatedProducts?: (string | Product)[] | null;
   meta?: {
     title?: string | null;
@@ -2457,6 +2524,32 @@ export interface ProductsSelect<T extends boolean = true> {
   variants?: T;
   priceInUSDEnabled?: T;
   priceInUSD?: T;
+  sku?: T;
+  brand?: T;
+  compareAtPriceInUSD?: T;
+  shortDescription?: T;
+  overviewTitle?: T;
+  overviewContent?: T;
+  overviewFeatures?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        id?: T;
+      };
+  specifications?:
+    | T
+    | {
+        group?: T;
+        rows?:
+          | T
+          | {
+              label?: T;
+              value?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   relatedProducts?: T;
   meta?:
     | T
