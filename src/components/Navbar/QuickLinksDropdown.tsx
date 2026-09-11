@@ -8,7 +8,7 @@ export function QuickLinksDropdown({ quickLinks }: Props) {
   return (
     <div className="p-2 w-[320px] flex flex-col">
       {items.map((item) => (
-        <div key={item.id} className="p-3 hover:bg-accent/50 rounded-lg transition-colors">
+        <div key={item.id} className="p-3 hover:bg-muted rounded-lg transition-colors">
           <CMSLink {...item.link} className="block text-sm font-semibold hover:underline" />
           <div className="text-sm text-muted-foreground leading-tight mt-0.5">{item.description}</div>
         </div>

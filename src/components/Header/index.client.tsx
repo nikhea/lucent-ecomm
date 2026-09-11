@@ -51,15 +51,15 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
                 <QuickLinksDropdown quickLinks={quickLinks} />
               ) : (
                 <div className="p-2 flex flex-col">
-                  <a href="/shop" className="block p-3 hover:bg-accent/50 rounded-lg">
+                  <a href="/shop" className="block p-3 hover:bg-muted rounded-lg">
                     <div className="text-sm font-semibold">All Products</div>
                     <div className="text-sm text-muted-foreground">Browse our full product catalog.</div>
                   </a>
-                  <a href="/contact" className="block p-3 hover:bg-accent/50 rounded-lg">
+                  <a href="/contact" className="block p-3 hover:bg-muted rounded-lg">
                     <div className="text-sm font-semibold">FAQs</div>
                     <div className="text-sm text-muted-foreground">Answers to common questions.</div>
                   </a>
-                  <a href="/shop" className="block p-3 hover:bg-accent/50 rounded-lg">
+                  <a href="/shop" className="block p-3 hover:bg-muted rounded-lg">
                     <div className="text-sm font-semibold">Blog</div>
                     <div className="text-sm text-muted-foreground">Get inspired by our latest posts.</div>
                   </a>
@@ -84,18 +84,18 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
         <div className="flex items-center gap-3 shrink-0">
           <Suspense fallback={<OpenCartButton />}>
             <div className="relative flex items-center gap-2">
-              <Link href="/cart" className="relative p-2 hover:bg-accent rounded-lg">
+              <Link href="/cart" className="relative p-2">
                 <ShoppingCart className="h-5 w-5" />
                 <CartCount />
               </Link>
             </div>
           </Suspense>
           {user ? (
-            <Link href="/account" className="hidden sm:inline-flex rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent">
+            <Link href="/account" className="hidden sm:inline-flex rounded-lg border px-4 py-2 text-sm font-medium">
               Account
             </Link>
           ) : (
-            <Link href="/login" className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-accent">
+            <Link href="/login" className="rounded-lg border px-4 py-2 text-sm font-medium">
               Sign In
             </Link>
           )}
