@@ -102,9 +102,9 @@ function ProductCardInner({ product, galleryImage, brand, price, comparePrice, b
               )
             })}
           </div>
-          <button onClick={handleAdd} disabled={!!(hasVariants && !selectedVariant) || !!isLoading} className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50">
-            <ShoppingBag className="h-3.5 w-3.5 mr-1" /> {hasVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
-          </button>
+                    <button onClick={handleAdd} disabled={!!(hasVariants && !selectedVariant) || !!isLoading} className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+                      <ShoppingBag className="h-3.5 w-3.5 mr-1" /> {hasVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
+                    </button>
         </div>
       </div>
       <div className="pt-3 flex flex-col gap-1">

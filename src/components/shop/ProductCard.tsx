@@ -95,7 +95,7 @@ export function ShopProductCard({ product, badge = 'none', badgeLabel }: Props) 
           <button
             onClick={handleAdd}
             disabled={!!(hasVariants && !selectedVariant) || !!isLoading}
-            className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50"
+            className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer hover:cursor-pointer"
           >
             <ShoppingBag className="h-3.5 w-3.5" /> {hasVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
           </button>

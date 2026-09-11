@@ -205,7 +205,7 @@ const queryProductBySlug = async ({ slug }: { slug: string }) => {
 
   const result = await payload.find({
     collection: 'products',
-    depth: 3,
+    depth: 4,
     draft,
     limit: 1,
     overrideAccess: draft,
