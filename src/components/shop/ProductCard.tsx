@@ -1,9 +1,12 @@
+'use client'
 import { Media } from '@/components/Media'
 import { Price } from '@/components/Price'
-import { Heart, ShoppingBag, Star } from 'lucide-react'
+import { Heart, ShoppingBag, Star, Check } from 'lucide-react'
+import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
 import Link from 'next/link'
-import React from 'react'
-import type { Product } from '@/payload-types'
+import React, { useState, useMemo } from 'react'
+import { toast } from 'sonner'
+import type { Product, Variant } from '@/payload-types'
 
 const badgeStyles: Record<string, string> = {
   sale: 'bg-red-500 text-white',
@@ -24,6 +27,34 @@ export function ShopProductCard({ product, badge = 'none', badgeLabel }: Props) 
   const price = product.priceInUSD || 0
   const comparePrice = badge === 'sale' ? price + 4300 : null
   const hasVariants = !!product.enableVariants
+  const variants = (product.variants?.docs || []).filter((v): v is Variant => typeof v === 'object') as Variant[]
+  const sizeType = (product.variantTypes || []).find((t: any) => typeof t === 'object' && t.name === 'size') as any
+  const sizeOptions = (sizeType?.options?.docs || []).filter((o: any) => typeof o === 'object') as any[]
+  const sizes = sizeOptions.length ? sizeOptions.map((o) => ({ label: o.label, value: o.value, id: o.id })) : ['XS', 'S', 'M', 'L', 'XL'].map((l) => ({ label: l, value: l.toLowerCase(), id: l }))
+  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const { addItem, isLoading } = useCart()
+
+  const selectedVariant = useMemo(() => {
+    if (!hasVariants || !selectedSize) return undefined
+    const sizeOpt = sizes.find((s) => s.label === selectedSize || s.value === selectedSize.toLowerCase())
+    if (!sizeOpt) return undefined
+    return variants.find((v) => v.options?.some((o: any) => (typeof o === 'object' ? String(o.id) : String(o)) === String(sizeOpt.id)))
+  }, [hasVariants, selectedSize, sizes, variants])
+
+  const handleAdd = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (hasVariants && !selectedVariant) {
+      toast.error('Please select a size')
+      return
+    }
+    try {
+      await addItem({ product: product.id!, variant: selectedVariant?.id, quantity: 1 } as any)
+      toast.success('Added to bag')
+    } catch {
+      toast.error('Failed to add to bag')
+    }
+  }
 
   return (
     <div className="group flex flex-col">
@@ -41,18 +72,32 @@ export function ShopProductCard({ product, badge = 'none', badgeLabel }: Props) 
         </button>
         <div className="absolute inset-x-2 bottom-2 bg-black/90 backdrop-blur rounded-xl p-2 flex flex-col gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
           <div className="flex gap-1 justify-center">
-            {['XS', 'S', 'M', 'L', 'XL'].map((size) => (
-              <span key={size} className="flex-1 text-center text-xs py-1.5 rounded-lg border border-white/20 text-white">
-                {size}
-              </span>
-            ))}
+            {sizes.slice(0, 5).map((size) => {
+              const label = (size as any).label || size
+              const active = selectedSize === label
+              return (
+                <button
+                  key={String(label)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setSelectedSize(active ? null : String(label))
+                  }}
+                  className={`relative flex-1 text-center text-xs py-1.5 rounded-lg border ${active ? 'bg-white text-black border-white' : 'border-white/20 text-white'}`}
+                >
+                  {label}
+                  {active && <Check className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-white text-black border p-0.5" />}
+                </button>
+              )
+            })}
           </div>
-          <Link
-            href={`/products/${product.slug}`}
-            className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium"
+          <button
+            onClick={handleAdd}
+            disabled={!!(hasVariants && !selectedVariant) || !!isLoading}
+            className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50"
           >
-            <ShoppingBag className="h-3.5 w-3.5" /> {hasVariants ? 'Select Size' : 'Add to Bag'}
-          </Link>
+            <ShoppingBag className="h-3.5 w-3.5" /> {hasVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
+          </button>
         </div>
       </div>
       <div className="pt-3 flex flex-col gap-1">
