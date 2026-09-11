@@ -53,7 +53,7 @@ export default async function ShopPage({ searchParams }: Props) {
     limit,
     page,
     sort: (sort as any) || 'title',
-    depth: 1,
+    depth: 2,
     select: {
       title: true,
       slug: true,
@@ -61,6 +61,11 @@ export default async function ShopPage({ searchParams }: Props) {
       categories: true,
       priceInUSD: true,
       enableVariants: true,
+      variantTypes: true,
+      variants: true,
+    },
+    populate: {
+      variants: { title: true, priceInUSD: true, inventory: true, options: true },
     },
     where: whereAnd.length > 1 ? { and: whereAnd } : whereAnd[0] ? whereAnd[0] : undefined,
   })
