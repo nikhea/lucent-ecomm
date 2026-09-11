@@ -16,6 +16,7 @@ import { LogoIcon } from '@/components/icons/logo'
 import { ShoppingBag, ShoppingCart } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/providers/Auth'
+import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
 
 type Props = {
   header: Header
@@ -111,19 +112,11 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
 }
 
 function CartCount() {
-  const [count, setCount] = React.useState<number | null>(null)
-  React.useEffect(() => {
-    let cancelled = false
-    fetch('/api/carts?limit=1', { credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!cancelled && data?.docs?.[0]?.items) setCount(data.docs[0].items.reduce((a: number, b: any) => a + (b.quantity || 0), 0))
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const { cart } = useCart()
+  const count = React.useMemo(() => {
+    if (!cart?.items?.length) return 0
+    return cart.items.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0)
+  }, [cart])
   if (!count) return null
   return <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">{count > 9 ? '9+' : count}</span>
 }

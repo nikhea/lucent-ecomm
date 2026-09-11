@@ -9,10 +9,10 @@ export function VariantPlugType({ product }: { product: Product }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  // Use size variant as plug type for fashion (or generic second variant type)
   const variantTypes = (product.variantTypes || []).filter((t: any) => typeof t === 'object') as any[]
   const plugType = variantTypes.find((t: any) => t.name === 'size') || variantTypes[1]
   const options = (plugType?.options?.docs || []).filter((o: any) => typeof o === 'object') as VariantOption[]
+  const variants = (product.variants?.docs || []).filter((v: any) => typeof v === 'object') as any[]
   if (!options.length) return null
 
   return (
@@ -23,18 +23,26 @@ export function VariantPlugType({ product }: { product: Product }) {
       <div className="flex gap-2">
         {options.map((opt) => {
           const active = searchParams.get(plugType.name) === String(opt.id)
+          const optionSearchParams = new URLSearchParams(searchParams.toString())
+          optionSearchParams.delete('variant')
+          optionSearchParams.set(plugType.name, String(opt.id))
+          const currentOptions = Array.from(optionSearchParams.values())
+          let isAvailable = true
+          const matching = variants.find((v: any) => v.options?.every((o: any) => currentOptions.includes(String(typeof o === 'object' ? o.id : o))))
+          if (matching) {
+            optionSearchParams.set('variant', String(matching.id))
+            isAvailable = (matching.inventory ?? 0) > 0
+          }
+          const href = `${pathname}?${optionSearchParams.toString()}`
           return (
             <button
               key={opt.id}
-              onClick={() => {
-                const params = new URLSearchParams(searchParams.toString())
-                params.set(plugType.name, String(opt.id))
-                params.delete('variant')
-                router.replace(`${pathname}?${params.toString()}`, { scroll: false })
-              }}
+              onClick={() => router.replace(href, { scroll: false })}
+              disabled={!isAvailable}
               className={cn(
                 'relative flex-1 rounded-lg border px-3 py-2 text-xs font-medium',
                 active ? 'bg-black text-white border-black' : 'bg-white border text-foreground hover:bg-muted',
+                !isAvailable && 'opacity-50',
               )}
             >
               {opt.label}

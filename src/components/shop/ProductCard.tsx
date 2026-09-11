@@ -38,7 +38,8 @@ export function ShopProductCard({ product, badge = 'none', badgeLabel }: Props) 
     if (!hasVariants || !selectedSize) return undefined
     const sizeOpt = sizes.find((s) => s.label === selectedSize || s.value === selectedSize.toLowerCase())
     if (!sizeOpt) return undefined
-    return variants.find((v) => v.options?.some((o: any) => (typeof o === 'object' ? String(o.id) : String(o)) === String(sizeOpt.id)))
+    const candidates = variants.filter((v) => v.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === String(sizeOpt.id)))
+    return candidates.find((v: any) => (v.inventory ?? 0) > 0) || candidates[0]
   }, [hasVariants, selectedSize, sizes, variants])
 
   const handleAdd = async (e: React.MouseEvent) => {

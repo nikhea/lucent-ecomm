@@ -51,7 +51,8 @@ function ProductCardInner({ product, galleryImage, brand, price, comparePrice, b
     if (!selectedSize) return undefined
     const sizeOpt = sizes.find((s: any) => s.label === selectedSize || s.value === selectedSize.toLowerCase())
     if (!sizeOpt) return undefined
-    return variants.find((v: any) => v.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === String(sizeOpt.id)))
+    const candidates = variants.filter((v: any) => v.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === String(sizeOpt.id)))
+    return candidates.find((v: any) => (v.inventory ?? 0) > 0) || candidates[0]
   }, [selectedSize, sizes, variants])
   const hasVariants = !!product.enableVariants
   const handleAdd = async (e: React.MouseEvent) => {
