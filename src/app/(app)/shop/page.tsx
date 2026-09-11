@@ -4,6 +4,7 @@ import React from 'react'
 import { ShopProductCard } from '@/components/shop/ProductCard'
 import { ProductResultsHeader } from '@/components/shop/ProductResultsHeader'
 import { ShopPagination } from '@/components/shop/Pagination'
+import { loadShopSearchParams } from '@/lib/searchParams.server'
 
 export const metadata = {
   description: 'Search for products in the store.',
@@ -17,19 +18,12 @@ type Props = {
 }
 
 export default async function ShopPage({ searchParams }: Props) {
-  const params = await searchParams
-  const searchValue = params.q as string | undefined
-  const sort = params.sort as string | undefined
-  const category = (params.category as string) || (params.categories as string)
-  const categoriesParam = (params.categories as string) || category
-  const minPrice = params.minPrice as string | undefined
-  const maxPrice = params.maxPrice as string | undefined
-  const page = parseInt((params.page as string) || '1', 10)
+  const { q: searchValue, sort, categories: categoriesParam, category: legacyCategory, minPrice, maxPrice, page } = await loadShopSearchParams(searchParams)
   const limit = 9
 
   const payload = await getPayload({ config: configPromise })
 
-  const categorySlugs = categoriesParam ? String(categoriesParam).split(',').filter(Boolean) : []
+  const categorySlugs = (categoriesParam as string[]).length ? (categoriesParam as string[]) : legacyCategory ? [String(legacyCategory)] : []
 
   let categoryIds: string[] = []
   if (categorySlugs.length) {
@@ -47,8 +41,8 @@ export default async function ShopPage({ searchParams }: Props) {
   if (categoryIds.length) {
     whereAnd.push({ categories: { in: categoryIds } })
   }
-  if (minPrice) whereAnd.push({ priceInUSD: { greater_than_equal: parseInt(String(minPrice), 10) * 100 } })
-  if (maxPrice) whereAnd.push({ priceInUSD: { less_than_equal: parseInt(String(maxPrice), 10) * 100 } })
+  if (typeof minPrice === 'number' && minPrice > 0) whereAnd.push({ priceInUSD: { greater_than_equal: minPrice * 100 } })
+  if (typeof maxPrice === 'number' && maxPrice > 0) whereAnd.push({ priceInUSD: { less_than_equal: maxPrice * 100 } })
 
   const totalAll = await payload.count({ collection: 'products', where: { _status: { equals: 'published' } }, overrideAccess: true })
 

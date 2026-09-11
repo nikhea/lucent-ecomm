@@ -8,6 +8,7 @@ import { ensureStartsWith } from '@/utilities/ensureStartsWith'
 import { Providers } from '@/providers'
 import { InitTheme } from '@/providers/Theme/InitTheme'
 import { Space_Grotesk, PT_Serif, Space_Mono } from 'next/font/google'
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import React from 'react'
 import './globals.css'
 
@@ -55,14 +56,16 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       </head>
       <body suppressHydrationWarning>
-        <Providers>
-          <AdminBar />
-          <LivePreviewListener />
+        <NuqsAdapter>
+          <Providers>
+            <AdminBar />
+            <LivePreviewListener />
 
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </Providers>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </Providers>
+        </NuqsAdapter>
       </body>
     </html>
   )

@@ -1,8 +1,10 @@
 'use client'
 import { Search as SearchIcon, Filter, Truck, Zap, Shield, Star } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import React, { useState, useEffect } from 'react'
-import { createUrl } from '@/utilities/createUrl'
+import React, { useState, useEffect, useTransition } from 'react'
+import { useQueryStates, parseAsString, parseAsArrayOf, parseAsInteger, throttle } from 'nuqs'
+import { PriceFilter } from './filters/PriceFilter'
+import { FrameSizeFilter } from './filters/FrameSizeFilter'
+import { RatingFilter } from './filters/RatingFilter'
 
 type CategoryWithCount = { id: string; title: string; slug: string; count: number }
 
@@ -21,46 +23,51 @@ const featureOptions = [
   { key: 'topRated', label: 'Top Rated (4+ stars)', icon: Star },
 ]
 
+const shopParsers = {
+  q: parseAsString.withDefault('').withOptions({ clearOnDefault: true, shallow: false }),
+  categories: parseAsArrayOf(parseAsString, ',').withDefault([]).withOptions({ clearOnDefault: true, shallow: false }),
+  brands: parseAsArrayOf(parseAsString, ',').withDefault([]).withOptions({ clearOnDefault: true, shallow: false }),
+  features: parseAsArrayOf(parseAsString, ',').withDefault([]).withOptions({ clearOnDefault: true, shallow: false }),
+  sizes: parseAsArrayOf(parseAsString, ',').withDefault([]).withOptions({ clearOnDefault: true, shallow: false }),
+  rating: parseAsArrayOf(parseAsString, ',').withDefault([]).withOptions({ clearOnDefault: true, shallow: false }),
+  minPrice: parseAsInteger.withOptions({ clearOnDefault: true, shallow: false }),
+  maxPrice: parseAsInteger.withOptions({ clearOnDefault: true, shallow: false }),
+  page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true, shallow: false }),
+}
+
 export function ShopFilters({ categories }: { categories: CategoryWithCount[] }) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [search, setSearch] = useState(searchParams.get('q') || '')
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') || '')
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '')
+  const [isPending, startTransition] = useTransition()
+  const [filters, setFilters] = useQueryStates(shopParsers, {
+    history: 'push',
+    shallow: false,
+    limitUrlUpdates: throttle(300),
+  })
+
+  const [search, setSearch] = useState(filters.q)
 
   useEffect(() => {
-    setSearch(searchParams.get('q') || '')
-    setMinPrice(searchParams.get('minPrice') || '')
-    setMaxPrice(searchParams.get('maxPrice') || '')
-  }, [searchParams])
+    setSearch(filters.q)
+  }, [filters.q])
 
-  const updateParam = (key: string, value: string | null) => {
-    const params = new URLSearchParams(searchParams.toString())
-    if (value && value !== '') params.set(key, value)
-    else params.delete(key)
-    params.delete('page')
-    router.push(createUrl('/shop', params))
+  const setFilter = (patch: Partial<typeof filters>) => {
+    startTransition(() => {
+      setFilters({ ...patch, page: 1 } as any)
+    })
   }
 
-  const toggleListParam = (key: string, value: string) => {
-    const current = searchParams.get(key)?.split(',').filter(Boolean) || []
-    const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value]
-    updateParam(key, next.length ? next.join(',') : null)
+  const toggleArray = (key: keyof typeof filters, value: string) => {
+    const current = (filters as any)[key] as string[]
+    const next = current.includes(value) ? current.filter((v: string) => v !== value) : [...current, value]
+    setFilter({ [key]: next } as any)
   }
 
-  const toggleFeature = (key: string) => {
-    const current = searchParams.get('features')?.split(',').filter(Boolean) || []
-    const next = current.includes(key) ? current.filter((v) => v !== key) : [...current, key]
-    updateParam('features', next.length ? next.join(',') : null)
+  const totalFilters = [filters.q, filters.categories.length && 'c', filters.brands.length && 'b', filters.features.length && 'f', filters.sizes.length && 's', filters.rating.length && 'r', filters.minPrice, filters.maxPrice].filter(Boolean).length
+
+  const clearAll = () => {
+    startTransition(() => {
+      setFilters({ q: '', categories: [], brands: [], features: [], sizes: [], rating: [], minPrice: null, maxPrice: null, page: 1 } as any)
+    })
   }
-
-  const activeFeatures = searchParams.get('features')?.split(',') || []
-  const activeCategories = searchParams.get('categories')?.split(',') || (searchParams.get('category') ? [searchParams.get('category')!] : [])
-  const activeBrands = searchParams.get('brands')?.split(',') || []
-
-  const totalFilters = [searchParams.get('q'), searchParams.get('categories') || searchParams.get('category'), searchParams.get('brands'), searchParams.get('features'), searchParams.get('minPrice'), searchParams.get('maxPrice')].filter(Boolean).length
-
-  const clearAll = () => router.push('/shop')
 
   return (
     <div className="w-full rounded-xl border bg-white p-4 flex flex-col gap-6">
@@ -78,7 +85,7 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            updateParam('q', search)
+            setFilter({ q: search })
           }}
           className="relative"
         >
@@ -98,11 +105,11 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
         <div className="text-sm font-semibold mb-3">Categories</div>
         <div className="grid grid-cols-2 gap-2">
           {categories.map((cat) => {
-            const active = activeCategories.includes(cat.slug)
+            const active = filters.categories.includes(cat.slug)
             return (
               <button
                 key={cat.id}
-                onClick={() => toggleListParam('categories', cat.slug)}
+                onClick={() => toggleArray('categories', cat.slug)}
                 className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left ${active ? 'bg-black text-white border-black' : 'bg-white hover:bg-muted'}`}
               >
                 <span className="truncate">{cat.title}</span>
@@ -115,29 +122,19 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
 
       <hr />
 
-      <div>
-        <div className="text-sm font-semibold mb-3">Price Range</div>
-        <div className="flex gap-2">
-          <input
-            placeholder="Min"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-            onBlur={() => updateParam('minPrice', minPrice)}
-            onKeyDown={(e) => e.key === 'Enter' && updateParam('minPrice', minPrice)}
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-            type="number"
-          />
-          <input
-            placeholder="Max"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            onBlur={() => updateParam('maxPrice', maxPrice)}
-            onKeyDown={(e) => e.key === 'Enter' && updateParam('maxPrice', maxPrice)}
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-            type="number"
-          />
-        </div>
-      </div>
+      <PriceFilter
+        minPrice={filters.minPrice ? String(filters.minPrice) : ''}
+        maxPrice={filters.maxPrice ? String(filters.maxPrice) : ''}
+        onChange={(min, max) => setFilter({ minPrice: min ? parseInt(min, 10) : null, maxPrice: max ? parseInt(max, 10) : null } as any)}
+      />
+
+      <hr />
+
+      <FrameSizeFilter value={filters.sizes} onToggle={(s) => toggleArray('sizes', s)} />
+
+      <hr />
+
+      <RatingFilter value={filters.rating} onToggle={(r) => toggleArray('rating', r)} />
 
       <hr />
 
@@ -145,11 +142,11 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
         <div className="text-sm font-semibold mb-3">Popular Brands</div>
         <div className="flex flex-col gap-2">
           {popularBrands.map((b) => {
-            const active = activeBrands.includes(b.name)
+            const active = filters.brands.includes(b.name)
             return (
               <button
                 key={b.name}
-                onClick={() => toggleListParam('brands', b.name)}
+                onClick={() => toggleArray('brands', b.name)}
                 className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${active ? 'bg-black text-white border-black' : 'bg-white hover:bg-muted'}`}
               >
                 <span>{b.name}</span>
@@ -166,12 +163,12 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
         <div className="text-sm font-semibold mb-3">Features</div>
         <div className="flex flex-col gap-2">
           {featureOptions.map((f) => {
-            const active = activeFeatures.includes(f.key)
+            const active = filters.features.includes(f.key)
             const Icon = f.icon
             return (
               <button
                 key={f.key}
-                onClick={() => toggleFeature(f.key)}
+                onClick={() => toggleArray('features', f.key)}
                 className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left ${active ? 'bg-black text-white border-black' : 'bg-white hover:bg-muted'}`}
               >
                 <Icon className="h-4 w-4" />
@@ -181,6 +178,7 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
           })}
         </div>
       </div>
+      {isPending && <div className="text-xs text-muted-foreground">Updating...</div>}
     </div>
   )
 }
