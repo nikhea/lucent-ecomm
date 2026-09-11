@@ -1,0 +1,21 @@
+allowBuilds:
+  '@vercel/git-hooks': set this to true or false
+  esbuild: set this to true or false
+  sharp: set this to true or false
+  unrs-resolver: set this to true or false
+minimumReleaseAgeExclude:
+  - '@payloadcms/admin-bar@3.89.0'
+  - '@payloadcms/db-mongodb@3.89.0'
+  - '@payloadcms/email-nodemailer@3.89.0'
+  - '@payloadcms/graphql@3.89.0'
+  - '@payloadcms/live-preview-react@3.89.0'
+  - '@payloadcms/live-preview@3.89.0'
+  - '@payloadcms/next@3.89.0'
+  - '@payloadcms/plugin-ecommerce@3.89.0'
+  - '@payloadcms/plugin-form-builder@3.89.0'
+  - '@payloadcms/plugin-seo@3.89.0'
+  - '@payloadcms/richtext-lexical@3.89.0'
+  - '@payloadcms/translations@3.89.0'
+  - '@payloadcms/ui@3.89.0'
+  - payload@3.89.0
+  - '@payloadcms/plugin-cloud-storage@3.89.0'
