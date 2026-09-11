@@ -60,9 +60,11 @@ export default async function Page({ params }: Args) {
   }
 
   const { hero, layout } = page
+  const lastBlockType = layout?.[layout.length - 1]?.blockType
+  const isFullBleedLast = lastBlockType === 'newsletterBanner' || lastBlockType === 'reviews'
 
   return (
-    <article className="pt-16 pb-24">
+    <article className={isFullBleedLast ? 'pt-16 pb-0' : 'pt-16 pb-24'}>
       <RenderHero {...hero} />
       <RenderBlocks blocks={layout} />
     </article>
