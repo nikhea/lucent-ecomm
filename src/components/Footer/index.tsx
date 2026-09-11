@@ -41,8 +41,8 @@ export async function Footer() {
 
   return (
     <footer className="border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-black">
-      <div className="container py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_0.7fr_0.7fr] gap-10">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_0.7fr_0.7fr] gap-10 items-start">
           <div className="flex flex-col gap-4 max-w-[520px]">
             <Link href="/" className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black">
