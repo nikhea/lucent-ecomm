@@ -2428,6 +2428,74 @@ export interface Header {
  */
 export interface Footer {
   id: string;
+  /**
+   * Logo text
+   */
+  brandName: string;
+  /**
+   * Left column brand description
+   */
+  description: string;
+  /**
+   * Newsletter block
+   */
+  newsletter: {
+    title: string;
+    placeholder: string;
+    buttonLabel: string;
+  };
+  quickLinksTitle: string;
+  /**
+   * Middle column (4 items as per image)
+   */
+  quickLinks?:
+    | {
+        link: {
+          type?: ('reference' | 'custom') | null;
+          newTab?: boolean | null;
+          reference?: {
+            relationTo: 'pages';
+            value: string | Page;
+          } | null;
+          url?: string | null;
+          label: string;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  legalTitle: string;
+  /**
+   * Right column (3 items as per image)
+   */
+  legalLinks?:
+    | {
+        link: {
+          type?: ('reference' | 'custom') | null;
+          newTab?: boolean | null;
+          reference?: {
+            relationTo: 'pages';
+            value: string | Page;
+          } | null;
+          url?: string | null;
+          label: string;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Facebook, Twitter, Instagram
+   */
+  socialLinks?:
+    | {
+        platform: 'facebook' | 'twitter' | 'instagram';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  copyright: string;
+  /**
+   * Legacy - kept for backwards compat
+   */
   navItems?:
     | {
         link: {
@@ -2490,6 +2558,53 @@ export interface HeaderSelect<T extends boolean = true> {
  * via the `definition` "footer_select".
  */
 export interface FooterSelect<T extends boolean = true> {
+  brandName?: T;
+  description?: T;
+  newsletter?:
+    | T
+    | {
+        title?: T;
+        placeholder?: T;
+        buttonLabel?: T;
+      };
+  quickLinksTitle?: T;
+  quickLinks?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+        id?: T;
+      };
+  legalTitle?: T;
+  legalLinks?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+        id?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  copyright?: T;
   navItems?:
     | T
     | {

@@ -1,65 +1,96 @@
 import type { Footer } from '@/payload-types'
 
-import { FooterMenu } from '@/components/Footer/menu'
-import { ThemeSelector } from '@/providers/Theme/ThemeSelector'
 import { getCachedGlobal } from '@/utilities/getGlobals'
 import Link from 'next/link'
-import React, { Suspense } from 'react'
-import { LogoIcon } from '@/components/icons/logo'
-
-const { COMPANY_NAME, SITE_NAME } = process.env
+import React from 'react'
+import { ShoppingBag, Facebook, Twitter, Instagram } from 'lucide-react'
+import { CMSLink } from '@/components/Link'
+import { Newsletter } from './Newsletter'
 
 export async function Footer() {
   const footer: Footer = await getCachedGlobal('footer', 1)()
-  const menu = footer.navItems || []
-  const currentYear = new Date().getFullYear()
-  const copyrightDate = 2023 + (currentYear > 2023 ? `-${currentYear}` : '')
-  const skeleton = 'w-full h-6 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700'
 
-  const copyrightName = COMPANY_NAME || SITE_NAME || ''
+  const brandName = (footer as any).brandName || 'EcommerceKit'
+  const description = (footer as any).description || 'Discover premium products with exceptional quality and modern design. Your satisfaction is our priority.'
+  const newsletter = (footer as any).newsletter || { title: 'Subscribe to our newsletter', placeholder: 'Enter your email', buttonLabel: 'Subscribe' }
+  const quickLinksTitle = (footer as any).quickLinksTitle || 'Quick Links'
+  const quickLinks = (footer as any).quickLinks || [
+    { id: '1', link: { label: 'About Us', url: '/about' } },
+    { id: '2', link: { label: 'Contact', url: '/contact' } },
+    { id: '3', link: { label: 'FAQ', url: '/contact' } },
+    { id: '4', link: { label: 'Shipping Info', url: '/shop' } },
+  ]
+  const legalTitle = (footer as any).legalTitle || 'Legal'
+  const legalLinks = (footer as any).legalLinks || [
+    { id: '1', link: { label: 'Privacy Policy', url: '/privacy' } },
+    { id: '2', link: { label: 'Terms of Service', url: '/terms' } },
+    { id: '3', link: { label: 'Returns', url: '/returns' } },
+  ]
+  const socialLinks = (footer as any).socialLinks || [
+    { id: '1', platform: 'facebook', url: '#' },
+    { id: '2', platform: 'twitter', url: '#' },
+    { id: '3', platform: 'instagram', url: '#' },
+  ]
+  const copyright = (footer as any).copyright || `© ${new Date().getFullYear()} EcommerceKit. All rights reserved.`
+
+  const iconMap: Record<string, React.ReactNode> = {
+    facebook: <Facebook className="h-5 w-5" />,
+    twitter: <Twitter className="h-5 w-5" />,
+    instagram: <Instagram className="h-5 w-5" />,
+  }
 
   return (
-    <footer className="text-sm text-neutral-500 dark:text-neutral-400">
-      <div className="container">
-        <div className="flex w-full flex-col gap-6 border-t border-neutral-200 py-12 text-sm md:flex-row md:gap-12 dark:border-neutral-700">
-          <div>
-            <Link className="flex items-center gap-2 text-black md:pt-1 dark:text-white" href="/">
-              <LogoIcon className="w-6" />
-              <span className="sr-only">{SITE_NAME}</span>
+    <footer className="border-t border-neutral-200 dark:border-neutral-700 bg-white dark:bg-black">
+      <div className="container py-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_0.7fr_0.7fr] gap-10">
+          <div className="flex flex-col gap-4 max-w-[520px]">
+            <Link href="/" className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black">
+                <ShoppingBag className="h-4 w-4" />
+              </span>
+              <span className="text-sm font-semibold">{brandName}</span>
             </Link>
+            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+
+            <div className="mt-2">
+              <div className="text-sm font-semibold mb-3">{newsletter.title}</div>
+              <Newsletter placeholder={newsletter.placeholder} buttonLabel={newsletter.buttonLabel} />
+            </div>
+
+            <div className="flex gap-4 mt-2 text-muted-foreground">
+              {socialLinks.map((s: any) => (
+                <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                  {iconMap[s.platform] || <Facebook className="h-5 w-5" />}
+                </a>
+              ))}
+            </div>
           </div>
-          <Suspense
-            fallback={
-              <div className="flex h-[188px] w-[200px] flex-col gap-2">
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
-                <div className={skeleton} />
-              </div>
-            }
-          >
-            <FooterMenu menu={menu} />
-          </Suspense>
-          <div className="md:ml-auto flex flex-col gap-4 items-end">
-            <ThemeSelector />
+
+          <div>
+            <div className="text-sm font-semibold mb-4">{quickLinksTitle}</div>
+            <ul className="flex flex-col gap-3">
+              {quickLinks.slice(0, 4).map((item: any) => (
+                <li key={item.id}>
+                  <CMSLink {...item.link} className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold mb-4">{legalTitle}</div>
+            <ul className="flex flex-col gap-3">
+              {legalLinks.slice(0, 3).map((item: any) => (
+                <li key={item.id}>
+                  <CMSLink {...item.link} className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-      </div>
-      <div className="border-t border-neutral-200 py-6 text-sm dark:border-neutral-700">
-        <div className="container mx-auto flex w-full flex-col items-center gap-1 md:flex-row md:gap-0">
-          <p>
-            &copy; {copyrightDate} {copyrightName}
-            {copyrightName.length && !copyrightName.endsWith('.') ? '.' : ''} All rights reserved.
-          </p>
-          <hr className="mx-4 hidden h-4 w-px border-l border-neutral-400 md:inline-block" />
-          <p>Designed in Michigan</p>
-          <p className="md:ml-auto">
-            <a className="text-black dark:text-white" href="https://payloadcms.com">
-              Crafted by Payload
-            </a>
-          </p>
+
+        <div className="mt-10 border-t border-neutral-200 dark:border-neutral-700 pt-6">
+          <p className="text-center text-sm text-muted-foreground">{copyright}</p>
         </div>
       </div>
     </footer>
