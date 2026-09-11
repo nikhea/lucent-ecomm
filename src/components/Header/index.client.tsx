@@ -30,7 +30,7 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
   const { user } = useAuth()
 
   return (
-    <div className="sticky top-0 z-30 bg-white border-b dark:bg-black">
+    <div className="fixed top-0 left-0 w-full z-40 bg-white border-b dark:bg-black">
       <nav className="container flex h-[64px] items-center justify-between gap-4">
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 shrink-0">

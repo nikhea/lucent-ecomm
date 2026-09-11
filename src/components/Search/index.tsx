@@ -1,10 +1,10 @@
 'use client'
 
 import { cn } from '@/utilities/cn'
-import { createUrl } from '@/utilities/createUrl'
 import { SearchIcon } from 'lucide-react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import React from 'react'
+import { parseAsString, useQueryState } from 'nuqs'
+import { useRouter } from 'next/navigation'
+import React, { useEffect, useState, useTransition } from 'react'
 
 type Props = {
   className?: string
@@ -12,22 +12,30 @@ type Props = {
 
 export const Search: React.FC<Props> = ({ className }) => {
   const router = useRouter()
-  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+  const [q, setQ] = useQueryState('q', parseAsString.withDefault('').withOptions({ clearOnDefault: true, shallow: false, history: 'push' } as any))
+
+  const [input, setInput] = useState(q)
+
+  useEffect(() => {
+    setInput(q)
+  }, [q])
+
+  const setValue = (v: string) => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/shop')) {
+      startTransition(() => {
+        setQ(v || null as any)
+      })
+    } else {
+      if (v) router.push(`/shop?q=${encodeURIComponent(v)}`)
+      else router.push('/shop')
+    }
+  }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-
-    const val = e.target as HTMLFormElement
-    const search = val.search as HTMLInputElement
-    const newParams = new URLSearchParams(searchParams.toString())
-
-    if (search.value) {
-      newParams.set('q', search.value)
-    } else {
-      newParams.delete('q')
-    }
-
-    router.push(createUrl('/shop', newParams))
+    const val = (e.target as HTMLFormElement).search as HTMLInputElement
+    setValue(val.value)
   }
 
   return (
@@ -35,15 +43,15 @@ export const Search: React.FC<Props> = ({ className }) => {
       <input
         autoComplete="off"
         className="w-full rounded-lg border bg-white px-4 py-2 text-sm text-black placeholder:text-neutral-500 dark:border-neutral-800 dark:bg-black dark:text-white dark:placeholder:text-neutral-400"
-        defaultValue={searchParams?.get('q') || ''}
-        key={searchParams?.get('q')}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
         name="search"
         placeholder="Search for products..."
         type="text"
       />
-      <div className="absolute right-0 top-0 mr-3 flex h-full items-center">
+      <button type="submit" className="absolute right-0 top-0 mr-3 flex h-full items-center" aria-label="Search">
         <SearchIcon className="h-4" />
-      </div>
+      </button>
     </form>
   )
 }

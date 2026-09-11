@@ -62,7 +62,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <LivePreviewListener />
 
             <Header />
-            <main>{children}</main>
+            <main className="pt-[64px]">{children}</main>
             <Footer />
           </Providers>
         </NuqsAdapter>
