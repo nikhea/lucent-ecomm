@@ -61,7 +61,7 @@ export default async function Page({ params }: Args) {
 
   const { hero, layout } = page
   const lastBlockType = layout?.[layout.length - 1]?.blockType
-  const isFullBleedLast = lastBlockType === 'newsletterBanner' || lastBlockType === 'reviews'
+  const isFullBleedLast = lastBlockType === 'newsletterBanner' || lastBlockType === 'reviews' || lastBlockType === 'promoGrid'
 
   return (
     <article className={isFullBleedLast ? 'pt-16 pb-0' : 'pt-16 pb-24'}>
