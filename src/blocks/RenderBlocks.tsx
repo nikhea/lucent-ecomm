@@ -8,6 +8,7 @@ import { MediaBlock } from '@/blocks/MediaBlock/Component'
 import { ThreeItemGridBlock } from '@/blocks/ThreeItemGrid/Component'
 import { NewsletterBannerBlock } from '@/blocks/NewsletterBanner/Component'
 import { ReviewsBlock } from '@/blocks/Reviews/Component'
+import { PromoGridBlock } from '@/blocks/PromoGrid/Component'
 import { toKebabCase } from '@/utilities/toKebabCase'
 import React, { Fragment } from 'react'
 
@@ -24,6 +25,7 @@ const blockComponents = {
   threeItemGrid: ThreeItemGridBlock,
   newsletterBanner: NewsletterBannerBlock,
   reviews: ReviewsBlock,
+  promoGrid: PromoGridBlock,
 }
 
 export const RenderBlocks: React.FC<{
@@ -43,7 +45,7 @@ export const RenderBlocks: React.FC<{
             const Block = blockComponents[blockType]
 
             if (Block) {
-              const isFullBleed = blockType === 'newsletterBanner' || blockType === 'reviews'
+              const isFullBleed = blockType === 'newsletterBanner' || blockType === 'reviews' || blockType === 'promoGrid'
               return (
                 <div className={isFullBleed ? '' : 'my-16'} key={index}>
                   {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}

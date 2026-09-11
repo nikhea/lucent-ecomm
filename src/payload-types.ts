@@ -545,6 +545,7 @@ export interface Page {
     | FormBlock
     | NewsletterBannerBlock
     | ReviewsBlock
+    | PromoGridBlock
   )[];
   meta?: {
     title?: string | null;
@@ -965,6 +966,29 @@ export interface ReviewsBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'reviews';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PromoGridBlock".
+ */
+export interface PromoGridBlock {
+  /**
+   * 4 items: 3 top row + 1 wide bottom (as per image)
+   */
+  items: {
+    eyebrow: string;
+    title: string;
+    linkLabel: string;
+    image: string | Media;
+    link: {
+      type: 'custom' | 'internal';
+      url?: string | null;
+    };
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'promoGrid';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1700,6 +1724,7 @@ export interface PagesSelect<T extends boolean = true> {
         formBlock?: T | FormBlockSelect<T>;
         newsletterBanner?: T | NewsletterBannerBlockSelect<T>;
         reviews?: T | ReviewsBlockSelect<T>;
+        promoGrid?: T | PromoGridBlockSelect<T>;
       };
   meta?:
     | T
@@ -1861,6 +1886,29 @@ export interface ReviewsBlockSelect<T extends boolean = true> {
         authorRole?: T;
         avatar?: T;
         rating?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PromoGridBlock_select".
+ */
+export interface PromoGridBlockSelect<T extends boolean = true> {
+  items?:
+    | T
+    | {
+        eyebrow?: T;
+        title?: T;
+        linkLabel?: T;
+        image?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              url?: T;
+            };
         id?: T;
       };
   id?: T;

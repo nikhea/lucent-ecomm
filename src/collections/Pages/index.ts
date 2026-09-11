@@ -5,6 +5,7 @@ import { Carousel } from '@/blocks/Carousel/config'
 import { ThreeItemGrid } from '@/blocks/ThreeItemGrid/config'
 import { NewsletterBanner } from '@/blocks/NewsletterBanner/config'
 import { ReviewsBlock } from '@/blocks/Reviews/config'
+import { PromoGrid } from '@/blocks/PromoGrid/config'
 import { generatePreviewPath } from '@/utilities/generatePreviewPath'
 import { adminOnly } from '@/access/adminOnly'
 import { Archive } from '@/blocks/ArchiveBlock/config'
@@ -100,6 +101,7 @@ export const Pages: CollectionConfig = {
                 FormBlock,
                 NewsletterBanner,
                 ReviewsBlock,
+                PromoGrid,
               ],
               required: true,
             },
