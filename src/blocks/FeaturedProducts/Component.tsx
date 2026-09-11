@@ -1,7 +1,7 @@
 import { Media } from '@/components/Media'
 import { Price } from '@/components/Price'
 import { Button } from '@/components/ui/button'
-import { Heart, ShoppingBag, Check } from 'lucide-react'
+import { Heart, ShoppingBag, Check, Star } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
 import type { FeaturedProductsBlock } from '@/payload-types'
@@ -63,9 +63,16 @@ export function FeaturedProductsBlock(props: FeaturedProductsBlock) {
 
                 <div className="pt-3 flex flex-col gap-1">
                   <div className="text-xs tracking-widest text-neutral-400 uppercase">{String(brand).toUpperCase()}</div>
-                  <Link href={`/products/${product.slug}`} className="text-sm font-medium leading-tight hover:underline">
-                    {product.title}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/products/${product.slug}`} className="text-sm font-medium leading-tight hover:underline">
+                      {product.title}
+                    </Link>
+                    <span className="flex text-yellow-400 shrink-0">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className="h-3 w-3 fill-yellow-400" />
+                      ))}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Price amount={price} className="text-sm font-bold" />
                     {comparePrice && <span className="text-xs line-through text-neutral-500"><Price amount={comparePrice} /></span>}
