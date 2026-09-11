@@ -59,7 +59,7 @@ export async function Footer() {
 
             <div className="flex gap-4 mt-2 text-muted-foreground">
               {socialLinks.map((s: any) => (
-                <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">
+                <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">
                   {iconMap[s.platform] || <Facebook className="h-5 w-5" />}
                 </a>
               ))}
@@ -71,7 +71,7 @@ export async function Footer() {
             <ul className="flex flex-col gap-3">
               {quickLinks.slice(0, 4).map((item: any) => (
                 <li key={item.id}>
-                  <CMSLink {...item.link} className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
+                  <CMSLink {...item.link} className="text-sm text-muted-foreground hover:text-green-600 transition-colors" />
                 </li>
               ))}
             </ul>
@@ -82,7 +82,7 @@ export async function Footer() {
             <ul className="flex flex-col gap-3">
               {legalLinks.slice(0, 3).map((item: any) => (
                 <li key={item.id}>
-                  <CMSLink {...item.link} className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
+                  <CMSLink {...item.link} className="text-sm text-muted-foreground hover:text-green-600 transition-colors" />
                 </li>
               ))}
             </ul>
