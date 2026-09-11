@@ -12,7 +12,7 @@ async function fetchFileByURL(url: string, fallbackName?: string): Promise<File>
 }
 
 export const seedCategoryShowcase = async ({ payload, req }: { payload: Payload; req?: PayloadRequest }) => {
-  payload.logger.info('— Seed categoryShowcase block (above hero)')
+  payload.logger.info('— Seed categoryShowcase block (below hero)')
 
   const homeRes = await payload.find({ collection: 'pages', where: { slug: { equals: 'home' } }, limit: 1, depth: 0, overrideAccess: true, req } as any)
   const home = homeRes.docs[0] as any
@@ -54,8 +54,12 @@ export const seedCategoryShowcase = async ({ payload, req }: { payload: Payload;
     ],
   }
 
-  // Insert at very top (before heroFashion)
-  const newLayout = [block, ...(home.layout || [])]
+  // Insert below heroFashion (as requested: below hero)
+  const layout = home.layout as any[]
+  const idxHero = layout.findIndex((b: any) => b.blockType === 'heroFashion')
+  const insertIdx = idxHero !== -1 ? idxHero + 1 : 0
+  const newLayout = [...layout]
+  newLayout.splice(insertIdx, 0, block)
 
   await payload.update({
     collection: 'pages',
@@ -66,7 +70,7 @@ export const seedCategoryShowcase = async ({ payload, req }: { payload: Payload;
     depth: 0,
     context: { disableRevalidate: true },
   })
-  payload.logger.info('  added categoryShowcase above hero')
+  payload.logger.info('  added categoryShowcase below hero')
 }
 
 export default seedCategoryShowcase
