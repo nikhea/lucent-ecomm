@@ -662,6 +662,10 @@ export interface Category {
    */
   generateSlug?: boolean | null;
   slug: string;
+  /**
+   * Subtitle for navbar dropdown (e.g. Apparel, shoes...)
+   */
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1795,6 +1799,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
   generateSlug?: T;
   slug?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2370,8 +2375,37 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  */
 export interface Header {
   id: string;
+  /**
+   * Legacy nav - kept for mobile
+   */
   navItems?:
     | {
+        link: {
+          type?: ('reference' | 'custom') | null;
+          newTab?: boolean | null;
+          reference?: {
+            relationTo: 'pages';
+            value: string | Page;
+          } | null;
+          url?: string | null;
+          label: string;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Quick Links dropdown — title + description shown in navbar
+   */
+  quickLinks?:
+    | {
+        /**
+         * e.g. All Products
+         */
+        label: string;
+        /**
+         * e.g. Browse our full catalog.
+         */
+        description: string;
         link: {
           type?: ('reference' | 'custom') | null;
           newTab?: boolean | null;
@@ -2420,6 +2454,22 @@ export interface HeaderSelect<T extends boolean = true> {
   navItems?:
     | T
     | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+        id?: T;
+      };
+  quickLinks?:
+    | T
+    | {
+        label?: T;
+        description?: T;
         link?:
           | T
           | {

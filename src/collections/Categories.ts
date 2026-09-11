@@ -24,5 +24,11 @@ export const Categories: CollectionConfig = {
     slugField({
       position: undefined,
     }),
+    {
+      name: 'description',
+      type: 'textarea',
+      maxLength: 150,
+      admin: { description: 'Subtitle for navbar dropdown (e.g. Apparel, shoes...)' },
+    },
   ],
 }
