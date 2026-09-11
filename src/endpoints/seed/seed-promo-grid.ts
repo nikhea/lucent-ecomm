@@ -21,17 +21,40 @@ export const seedPromoGrid = async ({ payload, req }: { payload: Payload; req?: 
     return
   }
 
+  // Use exact Unsplash images from user + white background
+  const promoUrls = [
+    'https://images.unsplash.com/photo-1574015974293-817f0ebebb74?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=973',
+    'https://images.unsplash.com/photo-1661327930345-9c6714b603b3?auto=format&fit=crop&q=80&w=400&h=400',
+    'https://images.unsplash.com/photo-1535220459927-c8428851fd45?auto=format&fit=crop&q=80&w=400&h=400',
+    'https://images.unsplash.com/photo-1559745482-57bfa9ca5a8a?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&q=80&w=1481',
+  ]
+  const files = await Promise.all(promoUrls.map((url, i) => fetchFileByURL(url, `promo-${i + 1}.jpg`)))
+
   const hasPromo = home.layout?.some((b: any) => b.blockType === 'promoGrid')
   if (hasPromo) {
-    payload.logger.info('  promoGrid already exists, skipping')
+    payload.logger.info('  promoGrid exists, updating to Unsplash images')
+    const idxPromo = home.layout.findIndex((b: any) => b.blockType === 'promoGrid')
+    // create new media for update
+    const mediasUpdate: any[] = []
+    for (let i = 0; i < files.length; i++) {
+      const media = await payload.create({ collection: 'media', data: { alt: `Promo ${i + 1} Unsplash` }, file: files[i]!, req, overrideAccess: true })
+      mediasUpdate.push(media)
+    }
+    const updatedPromo: any = {
+      ...home.layout[idxPromo],
+      items: [
+        { eyebrow: 'NEW', title: 'Urban Chick Collection', linkLabel: 'Read More', image: (mediasUpdate[0] as any).id, link: { type: 'custom', url: '/shop?collection=new-arrivals' } },
+        { eyebrow: 'SHOP SALES', title: 'Urban Chick Collection', linkLabel: 'Read More', image: (mediasUpdate[1] as any).id, link: { type: 'custom', url: '/shop?collection=sale-archive' } },
+        { eyebrow: '50% OFF', title: 'Urban Chick Collection', linkLabel: 'Read More', image: (mediasUpdate[2] as any).id, link: { type: 'custom', url: '/shop?collection=summer-essentials' } },
+        { eyebrow: 'UP TO 70%', title: 'Formal Elegance Series', linkLabel: 'Discover', image: (mediasUpdate[3] as any).id, link: { type: 'custom', url: '/shop?collection=evening-collection' } },
+      ],
+    }
+    const newLayout = [...home.layout]
+    newLayout[idxPromo] = updatedPromo
+    await payload.update({ collection: 'pages', id: home.id, data: { layout: newLayout } as any, req, overrideAccess: true, depth: 0, context: { disableRevalidate: true } })
+    payload.logger.info('  updated promoGrid with Unsplash + white bg')
     return
   }
-
-  // Create 4 media for promo grid (B&W fashion)
-  const seeds = ['promo-urban-1', 'promo-urban-2', 'promo-urban-3', 'promo-formal-1']
-  const files = await Promise.all(
-    seeds.map((seed, i) => fetchFileByURL(`https://picsum.photos/seed/${seed}/800/1000`, `promo-${i + 1}.jpg`)),
-  )
 
   const medias = []
   for (let i = 0; i < files.length; i++) {
