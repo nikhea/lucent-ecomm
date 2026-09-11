@@ -39,6 +39,10 @@ const nextConfig: NextConfig = {
         hostname: 'images.unsplash.com',
         protocol: 'https',
       },
+      {
+        hostname: 'assets.shadcnstore.com',
+        protocol: 'https',
+      },
     ],
   },
   reactStrictMode: true,

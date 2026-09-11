@@ -546,6 +546,7 @@ export interface Page {
     | NewsletterBannerBlock
     | ReviewsBlock
     | PromoGridBlock
+    | HeroFashionBlock
   )[];
   meta?: {
     title?: string | null;
@@ -989,6 +990,37 @@ export interface PromoGridBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'promoGrid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroFashionBlock".
+ */
+export interface HeroFashionBlock {
+  eyebrow: string;
+  title: string;
+  description: string;
+  primaryLink: {
+    label: string;
+    url: string;
+  };
+  secondaryLink: {
+    label: string;
+    url: string;
+  };
+  trustText?: string | null;
+  trustRating?: string | null;
+  heroImage: string | Media;
+  badgeText: string;
+  features: {
+    icon: 'check' | 'truck' | 'shield' | 'refresh';
+    title: string;
+    subtitle?: string | null;
+    value: string;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'heroFashion';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1725,6 +1757,7 @@ export interface PagesSelect<T extends boolean = true> {
         newsletterBanner?: T | NewsletterBannerBlockSelect<T>;
         reviews?: T | ReviewsBlockSelect<T>;
         promoGrid?: T | PromoGridBlockSelect<T>;
+        heroFashion?: T | HeroFashionBlockSelect<T>;
       };
   meta?:
     | T
@@ -1909,6 +1942,42 @@ export interface PromoGridBlockSelect<T extends boolean = true> {
               type?: T;
               url?: T;
             };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeroFashionBlock_select".
+ */
+export interface HeroFashionBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  description?: T;
+  primaryLink?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+      };
+  secondaryLink?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+      };
+  trustText?: T;
+  trustRating?: T;
+  heroImage?: T;
+  badgeText?: T;
+  features?:
+    | T
+    | {
+        icon?: T;
+        title?: T;
+        subtitle?: T;
+        value?: T;
         id?: T;
       };
   id?: T;

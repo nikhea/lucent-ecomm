@@ -50,7 +50,8 @@ export const Image: React.FC<MediaProps> = (props) => {
     const filename = fullFilename
 
     if (url) {
-      src = url.startsWith('http') ? url : `${process.env.NEXT_PUBLIC_SERVER_URL}${url}`
+      const fixedUrl = url.includes('/auto/upload/') ? url.replace('/auto/upload/', '/image/upload/') : url
+      src = fixedUrl.startsWith('http') ? fixedUrl : `${process.env.NEXT_PUBLIC_SERVER_URL}${fixedUrl}`
     }
   }
 

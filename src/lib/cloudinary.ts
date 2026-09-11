@@ -70,7 +70,7 @@ export const cloudinaryAdapter = () => ({
     if (!filename) return ''
     const nameNoExt = filename.replace(/\.[^/.]+$/, '')
     try {
-      return cloudinary.url(`${cloudinaryFolder}/${nameNoExt}`, { secure: true, resource_type: 'auto' })
+      return cloudinary.url(`${cloudinaryFolder}/${nameNoExt}`, { secure: true, resource_type: 'image' })
     } catch {
       return `https://res.cloudinary.com/${process.env.CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${cloudinaryFolder}/${filename}`
     }
@@ -82,7 +82,7 @@ export const generateCloudinaryURL = (filename: string) => {
   if (!filename) return ''
   const nameNoExt = filename.replace(/\.[^/.]+$/, '')
   try {
-    return cloudinary.url(`${cloudinaryFolder}/${nameNoExt}`, { secure: true, resource_type: 'auto' })
+    return cloudinary.url(`${cloudinaryFolder}/${nameNoExt}`, { secure: true, resource_type: 'image' })
   } catch {
     return `https://res.cloudinary.com/${process.env.CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME}/image/upload/${cloudinaryFolder}/${filename}`
   }

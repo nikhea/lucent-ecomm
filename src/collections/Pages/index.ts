@@ -6,6 +6,8 @@ import { ThreeItemGrid } from '@/blocks/ThreeItemGrid/config'
 import { NewsletterBanner } from '@/blocks/NewsletterBanner/config'
 import { ReviewsBlock } from '@/blocks/Reviews/config'
 import { PromoGrid } from '@/blocks/PromoGrid/config'
+import { HeroFashion } from '@/blocks/HeroFashion/config'
+import { BeautyPromo } from '@/blocks/BeautyPromo/config'
 import { generatePreviewPath } from '@/utilities/generatePreviewPath'
 import { adminOnly } from '@/access/adminOnly'
 import { Archive } from '@/blocks/ArchiveBlock/config'
@@ -102,6 +104,7 @@ export const Pages: CollectionConfig = {
                 NewsletterBanner,
                 ReviewsBlock,
                 PromoGrid,
+                HeroFashion,
               ],
               required: true,
             },
