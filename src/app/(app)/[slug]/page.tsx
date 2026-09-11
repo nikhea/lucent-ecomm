@@ -63,8 +63,13 @@ export default async function Page({ params }: Args) {
   const lastBlockType = layout?.[layout.length - 1]?.blockType
   const firstBlockType = layout?.[0]?.blockType
   const isFullBleedLast =
-    lastBlockType === 'newsletterBanner' || lastBlockType === 'reviews' || lastBlockType === 'promoGrid' || lastBlockType === 'heroFashion' || lastBlockType === 'categoryShowcase'
-  const isHeroFirst = firstBlockType === 'heroFashion' || firstBlockType === 'categoryShowcase'
+    lastBlockType === 'newsletterBanner' ||
+    lastBlockType === 'reviews' ||
+    lastBlockType === 'promoGrid' ||
+    lastBlockType === 'heroFashion' ||
+    lastBlockType === 'categoryShowcase' ||
+    lastBlockType === 'featuredProducts'
+  const isHeroFirst = firstBlockType === 'heroFashion' || firstBlockType === 'categoryShowcase' || firstBlockType === 'featuredProducts'
 
   return (
     <article className={`${isHeroFirst ? 'pt-0' : 'pt-16'} ${isFullBleedLast ? 'pb-0' : 'pb-24'}`}>

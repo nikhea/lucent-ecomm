@@ -548,6 +548,7 @@ export interface Page {
     | PromoGridBlock
     | HeroFashionBlock
     | CategoryShowcaseBlock
+    | FeaturedProductsBlock
   )[];
   meta?: {
     title?: string | null;
@@ -1043,6 +1044,31 @@ export interface CategoryShowcaseBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'categoryShowcase';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedProductsBlock".
+ */
+export interface FeaturedProductsBlock {
+  /**
+   * Optional section title, leave empty to hide
+   */
+  title?: string | null;
+  /**
+   * 6 products as per image (3x2 grid)
+   */
+  items: {
+    product: string | Product;
+    badge?: ('none' | 'sale' | 'bestseller' | 'new' | 'limited') | null;
+    /**
+     * Override badge text, e.g. Sale / Bestseller
+     */
+    badgeLabel?: string | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featuredProducts';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1781,6 +1807,7 @@ export interface PagesSelect<T extends boolean = true> {
         promoGrid?: T | PromoGridBlockSelect<T>;
         heroFashion?: T | HeroFashionBlockSelect<T>;
         categoryShowcase?: T | CategoryShowcaseBlockSelect<T>;
+        featuredProducts?: T | FeaturedProductsBlockSelect<T>;
       };
   meta?:
     | T
@@ -2025,6 +2052,23 @@ export interface CategoryShowcaseBlockSelect<T extends boolean = true> {
           | {
               url?: T;
             };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedProductsBlock_select".
+ */
+export interface FeaturedProductsBlockSelect<T extends boolean = true> {
+  title?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        badge?: T;
+        badgeLabel?: T;
         id?: T;
       };
   id?: T;

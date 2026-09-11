@@ -8,6 +8,7 @@ import { ReviewsBlock } from '@/blocks/Reviews/config'
 import { PromoGrid } from '@/blocks/PromoGrid/config'
 import { HeroFashion } from '@/blocks/HeroFashion/config'
 import { CategoryShowcase } from '@/blocks/CategoryShowcase/config'
+import { FeaturedProducts } from '@/blocks/FeaturedProducts/config'
 import { generatePreviewPath } from '@/utilities/generatePreviewPath'
 import { adminOnly } from '@/access/adminOnly'
 import { Archive } from '@/blocks/ArchiveBlock/config'
@@ -106,6 +107,7 @@ export const Pages: CollectionConfig = {
                 PromoGrid,
                 HeroFashion,
                 CategoryShowcase,
+                FeaturedProducts,
               ],
               required: true,
             },
