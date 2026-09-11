@@ -543,6 +543,8 @@ export interface Page {
     | ThreeItemGridBlock
     | BannerBlock
     | FormBlock
+    | NewsletterBannerBlock
+    | ReviewsBlock
   )[];
   meta?: {
     title?: string | null;
@@ -926,6 +928,43 @@ export interface Form {
     | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "NewsletterBannerBlock".
+ */
+export interface NewsletterBannerBlock {
+  title: string;
+  description: string;
+  placeholder: string;
+  buttonLabel: string;
+  disclaimer?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'newsletterBanner';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ReviewsBlock".
+ */
+export interface ReviewsBlock {
+  eyebrow?: string | null;
+  title: string;
+  subtitle?: string | null;
+  /**
+   * Testimonials - same count as image (3-4)
+   */
+  items: {
+    quote: string;
+    authorName: string;
+    authorRole: string;
+    avatar?: (string | null) | Media;
+    rating: number;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'reviews';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1659,6 +1698,8 @@ export interface PagesSelect<T extends boolean = true> {
         threeItemGrid?: T | ThreeItemGridBlockSelect<T>;
         banner?: T | BannerBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
+        newsletterBanner?: T | NewsletterBannerBlockSelect<T>;
+        reviews?: T | ReviewsBlockSelect<T>;
       };
   meta?:
     | T
@@ -1788,6 +1829,40 @@ export interface FormBlockSelect<T extends boolean = true> {
   form?: T;
   enableIntro?: T;
   introContent?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "NewsletterBannerBlock_select".
+ */
+export interface NewsletterBannerBlockSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  placeholder?: T;
+  buttonLabel?: T;
+  disclaimer?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ReviewsBlock_select".
+ */
+export interface ReviewsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  title?: T;
+  subtitle?: T;
+  items?:
+    | T
+    | {
+        quote?: T;
+        authorName?: T;
+        authorRole?: T;
+        avatar?: T;
+        rating?: T;
+        id?: T;
+      };
   id?: T;
   blockName?: T;
 }

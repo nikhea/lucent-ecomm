@@ -22,13 +22,13 @@ export function Dropdown({ label, children, align = 'left', widthClass = 'w-[320
       </button>
       <div
         className={cn(
-          'absolute top-full -mt-px z-50 hidden group-hover:block group-focus-within:block',
+          'absolute top-full -mt-2 z-50 hidden group-hover:block group-focus-within:block',
           align === 'left' && 'left-0',
           align === 'center' && 'left-1/2 -translate-x-1/2',
           align === 'right' && 'right-0',
         )}
       >
-        <div className={cn('rounded-xl border bg-white shadow-xl overflow-hidden dark:bg-card', widthClass, contentClassName)}>{children}</div>
+        <div className={cn('rounded-xl border-t-0 rounded-t-none border bg-white shadow-xl overflow-hidden dark:bg-card', widthClass, contentClassName)}>{children}</div>
       </div>
     </div>
   )
