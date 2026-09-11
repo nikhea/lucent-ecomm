@@ -1,9 +1,16 @@
 import type { Media, Product } from '@/payload-types'
 
 import { RenderBlocks } from '@/blocks/RenderBlocks'
-import { GridTileImage } from '@/components/Grid/tile'
-import { Gallery } from '@/components/product/Gallery'
-import { ProductDescription } from '@/components/product/ProductDescription'
+import { GalleryDark } from '@/components/product/GalleryDark'
+import { Breadcrumbs } from '@/components/product/Breadcrumbs'
+import { VariantColor } from '@/components/product/VariantColor'
+import { VariantPlugType } from '@/components/product/VariantPlugType'
+import { QuantityAndCart } from '@/components/product/QuantityAndCart'
+import { Overview } from '@/components/product/Overview'
+import { Specifications } from '@/components/product/Specifications'
+import { RelatedDark } from '@/components/product/RelatedDark'
+import { Price } from '@/components/Price'
+import { Star } from 'lucide-react'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { draftMode } from 'next/headers'
@@ -109,76 +116,73 @@ export default async function ProductPage({ params }: Args) {
   const relatedProducts =
     product.relatedProducts?.filter((relatedProduct) => typeof relatedProduct === 'object') ?? []
 
+  const categoriesForBreadcrumb = (product.categories || [])
+    .filter((c): c is Media | any => typeof c === 'object')
+    .map((c: any) => ({ title: c.title, slug: c.slug }))
+  const sku = `AERIAL-${product.slug?.slice(0, 3).toUpperCase()}-${String(product.id).slice(-2).toUpperCase()}`
+  const comparePrice = price ? price + Math.round(price * 0.13) : null
+  const discount = comparePrice ? Math.round(((comparePrice - (price || 0)) / comparePrice) * 100) : 0
+
   return (
     <React.Fragment>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productJsonLd),
-        }}
-        type="application/ld+json"
-      />
-      <div className="container pt-8 pb-8">
-        <Button asChild variant="ghost" className="mb-4">
-          <Link href="/shop">
-            <ChevronLeftIcon />
-            All products
-          </Link>
-        </Button>
-        <div className="flex flex-col gap-12 rounded-lg border p-8 md:py-12 lg:flex-row lg:gap-8 bg-primary-foreground">
-          <div className="h-full w-full basis-full lg:basis-1/2">
-            <Suspense
-              fallback={
-                <div className="relative aspect-square h-full max-h-[550px] w-full overflow-hidden" />
-              }
-            >
-              {Boolean(gallery?.length) && <Gallery gallery={gallery} />}
-            </Suspense>
+      <script dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} type="application/ld+json" />
+      <div className="bg-[#0a0a0a] text-white min-h-screen">
+        <div className="container pt-6 pb-12">
+          <Breadcrumbs productTitle={product.title} categories={categoriesForBreadcrumb as any} />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+            <div>
+              <Suspense fallback={<div className="aspect-square bg-white rounded-xl" />}>
+                {Boolean(gallery?.length) && <GalleryDark gallery={gallery as any} />}
+              </Suspense>
+            </div>
+
+            <div className="flex flex-col gap-5">
+              <div className="text-xs text-white/50">
+                {(categoriesForBreadcrumb[0]?.title || 'Audio') + ' • ' + (categoriesForBreadcrumb[0]?.title ? 'Headphones' : 'Products')}
+              </div>
+              <h1 className="text-3xl font-bold leading-tight">{product.title}</h1>
+              <div className="inline-flex text-[10px] tracking-widest bg-white/10 px-2 py-1 rounded">SKU: {sku}</div>
+
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-white/60">By Aerial</span>
+                <span className="flex text-yellow-400">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={`h-3.5 w-3.5 ${i < 4 ? 'fill-yellow-400' : 'fill-white/20'}`} />
+                  ))}
+                </span>
+                <span className="text-white">4.7</span>
+                <span className="text-white/60">(412 reviews)</span>
+              </div>
+
+              <p className="text-sm text-white/70 leading-relaxed">
+                {(product as any).meta?.description || 'Over-ear wireless headphones with 40-hour battery, hybrid active noise cancellation, and a hand-finished aluminum frame.'}
+              </p>
+
+              <div className="flex items-baseline gap-2">
+                {price && <span className="text-xl font-bold">${(price / 100).toFixed(0)}</span>}
+                {comparePrice && <span className="text-sm line-through text-white/40">${(comparePrice / 100).toFixed(0)}</span>}
+                {discount > 0 && <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded-full">{discount}% OFF</span>}
+              </div>
+
+              <VariantColor product={product} />
+              <VariantPlugType product={product} />
+              <QuantityAndCart product={product} />
+            </div>
           </div>
 
-          <div className="basis-full lg:basis-1/2">
-            <ProductDescription product={product} />
-          </div>
+          <Overview product={product} />
+          <Specifications />
+          {relatedProducts.length ? <RelatedDark products={relatedProducts as Product[]} /> : null}
         </div>
       </div>
 
-      {product.layout?.length ? <RenderBlocks blocks={product.layout} /> : <></>}
-
-      {relatedProducts.length ? (
-        <div className="container">
-          <RelatedProducts products={relatedProducts as Product[]} />
+      {product.layout?.length ? (
+        <div className="bg-white text-black">
+          <RenderBlocks blocks={product.layout} />
         </div>
-      ) : (
-        <></>
-      )}
+      ) : null}
     </React.Fragment>
-  )
-}
-
-function RelatedProducts({ products }: { products: Product[] }) {
-  if (!products.length) return null
-
-  return (
-    <div className="py-8">
-      <h2 className="mb-4 text-2xl font-bold">Related Products</h2>
-      <ul className="flex w-full gap-4 overflow-x-auto pt-1">
-        {products.map((product) => (
-          <li
-            className="aspect-square w-full flex-none min-[475px]:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5"
-            key={product.id}
-          >
-            <Link className="relative h-full w-full" href={`/products/${product.slug}`}>
-              <GridTileImage
-                label={{
-                  amount: product.priceInUSD!,
-                  title: product.title,
-                }}
-                media={product.meta?.image as Media}
-              />
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
   )
 }
 
