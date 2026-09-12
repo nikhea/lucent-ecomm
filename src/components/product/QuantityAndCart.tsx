@@ -15,8 +15,19 @@ export function QuantityAndCart({ product }: { product: Product }) {
   const selectedVariant = React.useMemo<Variant | undefined>(() => {
     if (product.enableVariants && variants.length) {
       const variantId = searchParams.get('variant')
-      const v = variants.find((va) => typeof va === 'object' && String((va as any).id) === variantId)
-      return v as Variant | undefined
+      let v = variants.find((va) => typeof va === 'object' && String((va as any).id) === variantId) as Variant | undefined
+      if (!v) {
+        const selectedIds = Array.from(searchParams.entries())
+          .filter(([k]) => k !== 'variant')
+          .map(([, val]) => val)
+        if (selectedIds.length) {
+          v = variants.find((va: any) => typeof va === 'object' && selectedIds.every((sid) => va.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === sid))) as Variant | undefined
+          if (!v) {
+            v = variants.find((va: any) => typeof va === 'object' && selectedIds.some((sid) => va.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === sid))) as Variant | undefined
+          }
+        }
+      }
+      return v
     }
     return undefined
   }, [product.enableVariants, searchParams, variants])
@@ -41,7 +52,7 @@ export function QuantityAndCart({ product }: { product: Product }) {
             <Plus className="h-4 w-4" />
           </button>
         </div>
-        <Button onClick={onAdd} disabled={!!isLoading || !!(product.enableVariants && !selectedVariant)} className="flex-1 h-10">
+        <Button onClick={onAdd} disabled={!!isLoading || !!(product.enableVariants && !selectedVariant) || !!(selectedVariant && (selectedVariant as any).inventory !== null && (selectedVariant as any).inventory <= 0)} className="flex-1 h-10 disabled:cursor-not-allowed">
           <ShoppingBag className="h-4 w-4 mr-2" /> Add to Cart
         </Button>
       </div>

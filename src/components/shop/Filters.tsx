@@ -70,7 +70,7 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
   }
 
   return (
-    <div className="w-full rounded-xl border bg-white p-4 flex flex-col gap-6">
+    <div className="w-full rounded-xl border bg-card p-4 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <Filter className="h-4 w-4" /> Filters <span className="bg-muted px-2 py-0.5 rounded text-xs">{totalFilters}</span>
@@ -110,10 +110,10 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
               <button
                 key={cat.id}
                 onClick={() => toggleArray('categories', cat.slug)}
-                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left ${active ? 'bg-black text-white border-black' : 'bg-white hover:bg-muted'}`}
+                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left ${active ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white' : 'bg-card hover:bg-muted'}`}
               >
                 <span className="truncate">{cat.title}</span>
-                <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] ${active ? 'bg-white text-black' : 'bg-muted'}`}>{cat.count}</span>
+                <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] ${active ? 'bg-white text-black dark:bg-black dark:text-white' : 'bg-muted'}`}>{cat.count}</span>
               </button>
             )
           })}
@@ -147,10 +147,10 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
               <button
                 key={b.name}
                 onClick={() => toggleArray('brands', b.name)}
-                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${active ? 'bg-black text-white border-black' : 'bg-white hover:bg-muted'}`}
+                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${active ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white' : 'bg-card hover:bg-muted'}`}
               >
                 <span>{b.name}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${active ? 'bg-white text-black' : 'bg-muted'}`}>{b.count}</span>
+                <span className={`px-2 py-0.5 rounded text-xs ${active ? 'bg-white text-black dark:bg-black dark:text-white' : 'bg-muted'}`}>{b.count}</span>
               </button>
             )
           })}
@@ -169,7 +169,7 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
               <button
                 key={f.key}
                 onClick={() => toggleArray('features', f.key)}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left ${active ? 'bg-black text-white border-black' : 'bg-white hover:bg-muted'}`}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left ${active ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white' : 'bg-card hover:bg-muted'}`}
               >
                 <Icon className="h-4 w-4" />
                 {f.label}

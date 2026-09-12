@@ -2,15 +2,13 @@
 import { Media } from '@/components/Media'
 import { Price } from '@/components/Price'
 import { Button } from '@/components/ui/button'
-import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
-import { Package, Trash2, ShieldCheck, Store } from 'lucide-react'
+import { Package, ShieldCheck, Store } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
-import { DeleteItemButton } from '@/components/Cart/DeleteItemButton'
-import { EditItemQuantityButton } from '@/components/Cart/EditItemQuantityButton'
 import type { Product } from '@/payload-types'
+import { useOptimisticCart } from '@/store/cart'
 
-function CartItemCard({ item, idx }: { item: any; idx: number }) {
+function CartItemCard({ item, idx, onIncrement, onDecrement, onRemove }: { item: any; idx: number; onIncrement: (id: string) => void; onDecrement: (id: string) => void; onRemove: (id: string) => void }) {
   const product = item.product as Product
   const variant = item.variant as any
   if (typeof product !== 'object' || !product) return null
@@ -38,7 +36,7 @@ function CartItemCard({ item, idx }: { item: any; idx: number }) {
   const delivery = deliveryMap[idx % deliveryMap.length]
 
   return (
-    <div className="rounded-xl border bg-white overflow-hidden">
+    <div className="rounded-xl border bg-card overflow-hidden">
       <div className="flex gap-4 p-4">
         <div className="h-24 w-24 shrink-0 rounded-lg bg-muted overflow-hidden">
           {image && typeof image === 'object' && image.url ? (
@@ -55,17 +53,23 @@ function CartItemCard({ item, idx }: { item: any; idx: number }) {
               </Link>
               {variantLabel && <div className="text-xs text-muted-foreground mt-0.5">{variantLabel}</div>}
             </div>
-            <DeleteItemButton item={item} />
+            <button onClick={() => onRemove(item.id)} className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-muted">
+              <span className="text-muted-foreground">🗑</span>
+            </button>
           </div>
           <div className="flex items-end justify-between mt-3">
             <div className="flex items-center rounded-lg border overflow-hidden h-8">
-              <EditItemQuantityButton item={item} type="minus" />
+              <button onClick={() => onDecrement(item.id)} className="h-8 w-8 flex items-center justify-center hover:bg-muted">
+                −
+              </button>
               <span className="w-8 text-center text-sm">{item.quantity}</span>
-              <EditItemQuantityButton item={item} type="plus" />
+              <button onClick={() => onIncrement(item.id)} className="h-8 w-8 flex items-center justify-center hover:bg-muted">
+                +
+              </button>
             </div>
             <div className="text-right">
-              <Price amount={price} className="text-sm font-bold" />
-              {hasCompare && <div className="text-xs line-through text-muted-foreground"><Price amount={comparePrice} /></div>}
+              <Price as="span" amount={price} className="text-sm font-bold" />
+              {hasCompare && <div className="text-xs line-through text-muted-foreground"><Price as="span" amount={comparePrice} /></div>}
             </div>
           </div>
         </div>
@@ -84,21 +88,21 @@ function OrderSummary({ subtotal, itemCount }: { subtotal: number; itemCount: nu
   const total = subtotal
 
   return (
-    <div className="rounded-xl border bg-white p-5 flex flex-col gap-4">
+    <div className="rounded-xl border bg-card p-5 flex flex-col gap-4">
       <h2 className="font-semibold">Order Summary</h2>
       <div className="flex flex-col gap-2 text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Subtotal</span>
-          <Price amount={subtotal} className="font-medium" />
+          <Price as="span" amount={subtotal} className="font-medium" />
         </div>
         <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping</span>
-          <span className="font-medium">{shipping === 0 ? 'Free' : <Price amount={shipping} />}</span>
+          <span className="font-medium">{shipping === 0 ? 'Free' : <Price as="span" amount={shipping} />}</span>
         </div>
         {savings > 0 && (
           <div className="flex justify-between">
             <span className="font-medium">You Save</span>
-            <span className="font-medium">-<Price amount={savings} /></span>
+            <span className="font-medium">-<Price as="span" amount={savings} /></span>
           </div>
         )}
       </div>
@@ -106,7 +110,7 @@ function OrderSummary({ subtotal, itemCount }: { subtotal: number; itemCount: nu
       <div className="flex justify-between items-start">
         <span className="font-semibold">Total</span>
         <div className="text-right">
-          <Price amount={total} className="font-bold text-lg" />
+          <Price as="span" amount={total} className="font-bold text-lg" />
           <div className="text-xs text-muted-foreground">Including VAT, if applicable</div>
         </div>
       </div>
@@ -123,9 +127,9 @@ function OrderSummary({ subtotal, itemCount }: { subtotal: number; itemCount: nu
 }
 
 export function CartPageClient() {
-  const { cart, isLoading } = useCart()
+  const { cart, isLoading, incrementItem, decrementItem, removeItem } = useOptimisticCart()
 
-  if (isLoading) {
+  if (isLoading && !cart) {
     return (
       <div className="container py-12">
         <div className="h-32 animate-pulse rounded-xl bg-muted" />
@@ -134,8 +138,8 @@ export function CartPageClient() {
   }
 
   const items = cart?.items || []
-  const itemCount = items.reduce((sum, it) => sum + (it.quantity || 0), 0)
-  const subtotal = cart?.subtotal || items.reduce((sum, it) => {
+  const itemCount = items.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0)
+  const subtotal = items.reduce((sum: number, it: any) => {
     const p = it.product as any
     const v = it.variant as any
     const price = v?.priceInUSD ?? p?.priceInUSD ?? 0
@@ -158,32 +162,32 @@ export function CartPageClient() {
     <div className="container py-8">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold">Your Shopping Cart</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {itemCount} items in your cart • <Price amount={subtotal} className="font-medium text-foreground" />
-        </p>
+        <div className="text-sm text-muted-foreground mt-1">
+          {itemCount} items in your cart • <Price as="span" amount={subtotal} className="font-medium text-foreground" />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_0.9fr] gap-6 items-start">
         <div className="flex flex-col gap-4">
-          {items.map((item, idx) => (
-            <CartItemCard key={(item as any).id || idx} item={item} idx={idx} />
+          {items.map((item: any, idx: number) => (
+            <CartItemCard key={(item as any).id || idx} item={item} idx={idx} onIncrement={incrementItem} onDecrement={decrementItem} onRemove={removeItem} />
           ))}
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-[80px]">
           <OrderSummary subtotal={subtotal} itemCount={itemCount} />
 
-          <div className="rounded-xl border bg-amber-50 p-4 flex gap-3">
-            <span className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
-              <ShieldCheck className="h-4 w-4 text-amber-600" />
+          <div className="rounded-xl border bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/30 p-4 flex gap-3">
+            <span className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+              <ShieldCheck className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             </span>
             <div>
-              <div className="text-sm font-semibold">Secure Checkout</div>
-              <div className="text-xs text-muted-foreground">Your payment information is encrypted and secure.</div>
+              <div className="text-sm font-semibold dark:text-white">Secure Checkout</div>
+              <div className="text-xs text-muted-foreground dark:text-white/60">Your payment information is encrypted and secure.</div>
             </div>
           </div>
 
-          <Link href="/shop" className="rounded-xl border bg-white py-3 text-center text-sm font-medium hover:bg-muted flex items-center justify-center gap-2">
+          <Link href="/shop" className="rounded-xl border bg-card py-3 text-center text-sm font-medium hover:bg-muted flex items-center justify-center gap-2">
             <Store className="h-4 w-4" /> Continue Shopping →
           </Link>
         </div>

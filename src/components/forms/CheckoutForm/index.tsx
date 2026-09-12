@@ -133,14 +133,15 @@ export const CheckoutForm: React.FC<Props> = ({
   )
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5 text-white">
       {error && <Message error={error} />}
-      <PaymentElement />
-      <div className="mt-8 flex gap-4">
-        <Button disabled={!stripe || isLoading} type="submit" variant="default">
-          {isLoading ? 'Loading...' : 'Pay now'}
-        </Button>
+      <div className="rounded-xl border bg-muted/10 dark:bg-white/5 dark:border-white/10 p-4">
+        <PaymentElement />
       </div>
+      <Button disabled={!stripe || isLoading} type="submit" className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 h-11 rounded-full w-full text-sm font-semibold">
+        {isLoading ? 'Processing...' : 'Pay now'}
+      </Button>
+      <p className="text-[11px] text-center text-muted-foreground dark:text-white flex items-center justify-center gap-1.5">🔒 Secure payment powered by Stripe • Encrypted & protected</p>
     </form>
   )
 }

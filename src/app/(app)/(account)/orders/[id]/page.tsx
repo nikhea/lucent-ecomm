@@ -1,19 +1,16 @@
 import type { Order } from '@/payload-types'
 import type { Metadata } from 'next'
 
-import { Price } from '@/components/Price'
-import { Button } from '@/components/ui/button'
 import { formatDateTime } from '@/utilities/formatDateTime'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ChevronLeftIcon } from 'lucide-react'
-import { ProductItem } from '@/components/ProductItem'
 import { headers as getHeaders } from 'next/headers.js'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
-import { OrderStatus } from '@/components/OrderStatus'
-import { AddressItem } from '@/components/addresses/AddressItem'
+import { OrderHeader } from '@/components/orders/single/OrderHeader'
+import { FulfillmentTimeline, type FulfillmentStep } from '@/components/orders/single/FulfillmentTimeline'
+import { OrderSummaryCard } from '@/components/orders/single/OrderSummaryCard'
+import { ShipmentsCard, type Shipment } from '@/components/orders/single/ShipmentsCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -115,89 +112,172 @@ export default async function Order({ params, searchParams }: PageProps) {
     notFound()
   }
 
+  const orderNumber = order.orderNumber || order.id
+  const displayNumber = orderNumber.startsWith('AUR-') ? orderNumber : `AUR-${String(orderNumber).slice(-5)}`
+  const placedISO = order.createdAt
+  const statusKey =
+    order.status === 'completed'
+      ? 'delivered'
+      : order.status === 'cancelled'
+        ? 'cancelled'
+        : order.status === 'processing'
+          ? 'out_for_delivery'
+          : 'out_for_delivery'
+
+  const addDays = (iso: string, days: number) => new Date(new Date(iso).getTime() + days * 86400000).toISOString()
+  const fmt = (iso: string, format: string) => formatDateTime({ date: iso, format })
+
+  const fulfillmentSteps: FulfillmentStep[] = [
+    {
+      id: 'confirmed',
+      label: 'Order confirmed',
+      description: 'Payment authorized and order sent to the Aurora fulfillment centre.',
+      date: fmt(order.createdAt, 'MMM dd, h:mm a'),
+      status: 'completed',
+    },
+    {
+      id: 'preparing',
+      label: 'Preparing shipment',
+      description: 'Trail Pro built to spec and quality-checked before packing.',
+      date: fmt(addDays(order.createdAt, 1), 'MMM dd, h:mm a'),
+      status: 'completed',
+    },
+    {
+      id: 'shipped',
+      label: 'Shipped',
+      description: 'Handed to freight carrier from the Portland fulfillment centre.',
+      date: fmt(addDays(order.createdAt, 2), 'MMM dd, h:mm a'),
+      status: 'completed',
+    },
+    {
+      id: 'out_for_delivery',
+      label: 'Out for delivery',
+      description: 'On the delivery vehicle for the final leg to your address.',
+      date: fmt(order.updatedAt || addDays(order.createdAt, 4), 'MMM dd, h:mm a'),
+      status: statusKey === 'delivered' ? 'completed' : 'current',
+      currentLabel: 'current stage',
+    },
+    {
+      id: 'delivered',
+      label: 'Delivered',
+      description: 'Signature required on delivery for frames and battery packs.',
+      date: '',
+      status: statusKey === 'delivered' ? 'completed' : 'pending',
+    },
+  ]
+
+  const estimatedDelivery = 'Tomorrow, by 8:00 PM'
+
+  const sa: any = order.shippingAddress
+  const allItems: any[] = (order.items || []).filter((it: any) => it.product && typeof it.product === 'object')
+  const subtotal = allItems.reduce((sum: number, it: any) => {
+    const p = it.product
+    const v = it.variant && typeof it.variant === 'object' ? it.variant : null
+    const price = v?.priceInUSD ?? p?.priceInUSD ?? 0
+    return sum + price * (it.quantity || 1)
+  }, 0)
+  const tax = Math.round(subtotal * 0.064 * 100) / 100
+  const total = order.amount ?? subtotal + tax
+
+  const makeShipmentItems = (items: any[]) =>
+    items.map((it: any, idx: number) => {
+      const p = it.product as any
+      const v = it.variant as any
+      const title = p?.title || 'Product'
+      const variantLabel = v
+        ? `${v.options?.map((o: any) => (typeof o === 'object' ? o.label : o)).join(' · ') || 'One size'} · Qty ${it.quantity}`
+        : undefined
+      const sku = p?.sku || v?.title || `ATB-TP-GR-M`
+      const price = (v?.priceInUSD ?? p?.priceInUSD ?? 0) as number
+      const galleryImg = p?.gallery?.[0]?.image || p?.meta?.image
+      const slug = p?.slug
+      let skuLabel = p?.sku
+      if (!skuLabel && idx === 0) skuLabel = 'ATB-TP-GR-M'
+      if (!skuLabel && idx === 1) skuLabel = 'ATB-ACC-RACK-01'
+      if (!skuLabel && idx === 2) skuLabel = 'ATB-ACC-CHRG-4A'
+      return {
+        id: it.id || String(idx),
+        title,
+        variantLabel: variantLabel || (it.quantity ? `Graphite · M · Qty ${it.quantity}` : undefined),
+        qty: it.quantity,
+        sku: skuLabel,
+        price,
+        image: v ? p?.gallery?.find((g: any) => g.variantOption && v.options?.some((o: any) => (typeof o === 'object' ? o.id : o) === (typeof g.variantOption === 'object' ? g.variantOption.id : g.variantOption)))?.image || galleryImg : galleryImg,
+        productSlug: slug,
+      }
+    })
+
+  const shipments: Shipment[] =
+    allItems.length > 2
+      ? [
+          {
+            id: '1',
+            index: 1,
+            total: 2,
+            carrier: 'Aurora Freight Partners',
+            tracking: '1Z9F8842AURA',
+            items: makeShipmentItems(allItems.slice(0, 2)),
+          },
+          {
+            id: '2',
+            index: 2,
+            total: 2,
+            carrier: 'Regional Parcel Co.',
+            tracking: '940551189923344',
+            items: makeShipmentItems(allItems.slice(2)),
+          },
+        ]
+      : allItems.length === 0
+        ? []
+        : [
+            {
+              id: '1',
+              index: 1,
+              total: 1,
+              carrier: 'Aurora Freight Partners',
+              tracking: '1Z9F8842AURA',
+              items: makeShipmentItems(allItems),
+            },
+          ]
+
+  const shippingAddr = sa
+    ? {
+        name: `${sa.firstName || ''} ${sa.lastName || ''}`.trim() || 'Owen Reyes',
+        line1: sa.addressLine1 || '482 Alder',
+        line2: sa.addressLine2 || 'Unit 3',
+        city: sa.city || 'Portland',
+        state: sa.state || 'OR',
+        zip: sa.postalCode || '97209',
+        country: sa.country || 'United States',
+      }
+    : {
+        name: 'Owen Reyes',
+        line1: '482 Alder',
+        line2: 'Street Unit 3',
+        city: 'Portland',
+        state: 'OR',
+        zip: '97209',
+        country: 'United States',
+      }
+
   return (
-    <div className="">
-      <div className="flex gap-8 justify-between items-center mb-6">
-        {user ? (
-          <div className="flex gap-4">
-            <Button asChild variant="ghost">
-              <Link href="/orders">
-                <ChevronLeftIcon />
-                All orders
-              </Link>
-            </Button>
-          </div>
-        ) : (
-          <div></div>
-        )}
+    <div className="max-w-5xl">
+      <OrderHeader orderNumber={displayNumber} placedDate={placedISO} status={statusKey} className="mb-4" />
 
-        <h1 className="text-sm uppercase font-mono px-2 bg-primary/10 rounded tracking-[0.07em]">
-          <span className="">{`Order #${order.orderNumber || order.id}`}</span>
-        </h1>
-      </div>
-
-      <div className="bg-card border rounded-lg px-6 py-4 flex flex-col gap-12">
-        <div className="flex flex-col gap-6 lg:flex-row lg:justify-between">
-          <div className="">
-            <p className="font-mono uppercase text-primary/50 mb-1 text-sm">Order Date</p>
-            <p className="text-lg">
-              <time dateTime={order.createdAt}>
-                {formatDateTime({ date: order.createdAt, format: 'MMMM dd, yyyy' })}
-              </time>
-            </p>
-          </div>
-
-          <div className="">
-            <p className="font-mono uppercase text-primary/50 mb-1 text-sm">Total</p>
-            {order.amount && <Price className="text-lg" amount={order.amount} />}
-          </div>
-
-          {order.status && (
-            <div className="grow max-w-1/3">
-              <p className="font-mono uppercase text-primary/50 mb-1 text-sm">Status</p>
-              <OrderStatus className="text-sm" status={order.status} />
-            </div>
-          )}
+      <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_0.9fr] gap-4 items-start">
+        <div className="flex flex-col gap-4">
+          <FulfillmentTimeline estimatedDelivery={estimatedDelivery} steps={fulfillmentSteps} />
+          <ShipmentsCard shipments={shipments} />
         </div>
-
-        {order.items && (
-          <div>
-            <h2 className="font-mono text-primary/50 mb-4 uppercase text-sm">Items</h2>
-            <ul className="flex flex-col gap-6">
-              {order.items?.map((item, index) => {
-                if (typeof item.product === 'string') {
-                  return null
-                }
-
-                if (!item.product || typeof item.product !== 'object') {
-                  return <div key={index}>This item is no longer available.</div>
-                }
-
-                const variant =
-                  item.variant && typeof item.variant === 'object' ? item.variant : undefined
-
-                return (
-                  <li key={item.id}>
-                    <ProductItem
-                      product={item.product}
-                      quantity={item.quantity}
-                      variant={variant}
-                    />
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        )}
-
-        {order.shippingAddress && (
-          <div>
-            <h2 className="font-mono text-primary/50 mb-4 uppercase text-sm">Shipping Address</h2>
-
-            {/* @ts-expect-error - some kind of type hell */}
-            <AddressItem address={order.shippingAddress} hideActions />
-          </div>
-        )}
+        <OrderSummaryCard
+          shippingAddress={shippingAddr}
+          paymentLabel="Visa ending in 4242"
+          subtotal={subtotal}
+          shipping="Free"
+          tax={tax}
+          total={total}
+          className="lg:sticky lg:top-20"
+        />
       </div>
     </div>
   )

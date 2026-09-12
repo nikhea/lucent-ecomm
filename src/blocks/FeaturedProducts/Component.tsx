@@ -33,9 +33,15 @@ export function FeaturedProductsBlock(props: FeaturedProductsBlock) {
             const price = product.priceInUSD || 0
             const comparePrice = badgeKey === 'sale' ? price + 4300 : null
             const variants = ((product as any).variants?.docs || []).filter((v: any) => typeof v === 'object') as Variant[]
-            const sizeType = ((product as any).variantTypes || []).find((t: any) => typeof t === 'object' && t.name === 'size') as any
+            const hasVariants = !!(product as any).enableVariants
+            const variantTypes = ((product as any).variantTypes || []).filter((t: any) => typeof t === 'object') as any[]
+            const sizeType = variantTypes.find((t: any) => t.name === 'size') || variantTypes[0] as any
             const sizeOptions = (sizeType?.options?.docs || []).filter((o: any) => typeof o === 'object') as any[]
-            const sizes = sizeOptions.length ? sizeOptions.map((o: any) => ({ label: o.label, value: o.value, id: o.id })) : ['XS', 'S', 'M', 'L', 'XL'].map((l) => ({ label: l, value: l.toLowerCase(), id: l }))
+            const sizes = sizeOptions.length
+              ? sizeOptions.map((o: any) => ({ label: o.label, value: o.value, id: o.id }))
+              : hasVariants
+                ? ['XS', 'S', 'M', 'L', 'XL'].map((l: any) => ({ label: l, value: l.toLowerCase(), id: l }))
+                : []
             return <ProductCardInner key={item.id} product={product} galleryImage={galleryImage} brand={brand} price={price} comparePrice={comparePrice} badgeKey={badgeKey} badgeLabel={badgeLabel} sizes={sizes} variants={variants} />
           })}
         </div>
@@ -47,14 +53,26 @@ export function FeaturedProductsBlock(props: FeaturedProductsBlock) {
 function ProductCardInner({ product, galleryImage, brand, price, comparePrice, badgeKey, badgeLabel, sizes, variants }: any) {
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const { addItem, isLoading } = useCart()
-  const selectedVariant = useMemo(() => {
-    if (!selectedSize) return undefined
-    const sizeOpt = sizes.find((s: any) => s.label === selectedSize || s.value === selectedSize.toLowerCase())
-    if (!sizeOpt) return undefined
-    const candidates = variants.filter((v: any) => v.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === String(sizeOpt.id)))
-    return candidates.find((v: any) => (v.inventory ?? 0) > 0) || candidates[0]
-  }, [selectedSize, sizes, variants])
   const hasVariants = !!product.enableVariants
+  const selectedVariant = useMemo(() => {
+    if (!hasVariants || !sizes.length) return undefined
+    if (!selectedSize) return undefined
+    const sizeOpt = sizes.find((s: any) => s.label === selectedSize || s.value === selectedSize.toLowerCase() || String(s.id) === selectedSize)
+    if (!sizeOpt) return undefined
+    const candidates = variants.filter((v: any) =>
+      v.options?.some((o: any) => {
+        const oid = String(typeof o === 'object' ? o.id : o)
+        const label = typeof o === 'object' ? (o as any).label : ''
+        const value = typeof o === 'object' ? (o as any).value : ''
+        return oid === String(sizeOpt.id) || label === sizeOpt.label || (value && value.toLowerCase() === String(sizeOpt.value).toLowerCase())
+      }),
+    )
+    if (!candidates.length) {
+      if (variants.length && hasVariants) return variants.find((v: any) => (v.inventory ?? 0) > 0) || variants[0]
+      return undefined
+    }
+    return candidates.find((v: any) => (v.inventory ?? 0) > 0) || candidates[0]
+  }, [hasVariants, selectedSize, sizes, variants])
   const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
@@ -81,31 +99,45 @@ function ProductCardInner({ product, galleryImage, brand, price, comparePrice, b
         <button className="absolute top-3 right-3 h-8 w-8 rounded-lg bg-black/70 backdrop-blur flex items-center justify-center text-white hover:bg-black">
           <Heart className="h-4 w-4" />
         </button>
-        <div className="absolute inset-x-2 bottom-2 bg-black/90 backdrop-blur rounded-xl p-2 flex flex-col gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <div className="flex gap-1 justify-center">
-            {sizes.slice(0, 5).map((size: any) => {
-              const label = size.label
-              const active = selectedSize === label
-              return (
-                <button
-                  key={String(label)}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    setSelectedSize(active ? null : String(label))
-                  }}
-                  className={`relative flex-1 text-center text-xs py-1.5 rounded-lg border ${active ? 'bg-white text-black border-white' : 'border-white/20 text-white'}`}
-                >
-                  {label}
-                  {active && <Check className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-white text-black border p-0.5" />}
-                </button>
-              )
-            })}
+        {sizes.length > 0 ? (
+          <div className="absolute inset-x-2 bottom-2 bg-black/90 backdrop-blur rounded-xl p-2 flex flex-col gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+            <div className="flex gap-1 justify-center">
+              {sizes.slice(0, 5).map((size: any) => {
+                const label = size.label
+                const active = selectedSize === label
+                return (
+                  <button
+                    key={String(label)}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setSelectedSize(active ? null : String(label))
+                    }}
+                    className={`relative flex-1 text-center text-xs py-1.5 rounded-lg border ${active ? 'bg-white text-black border-white' : 'border-white/20 text-white'}`}
+                  >
+                    {label}
+                    {active && <Check className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-white text-black border p-0.5" />}
+                  </button>
+                )
+              })}
+            </div>
+            <button
+              onClick={handleAdd}
+              disabled={!!(hasVariants && !selectedVariant) || !!isLoading || !!(hasVariants && selectedVariant && (selectedVariant as any).inventory !== null && (selectedVariant as any).inventory <= 0)}
+              className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed not-disabled:cursor-pointer"
+            >
+              <ShoppingBag className="h-3.5 w-3.5 mr-1" /> {hasVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
+            </button>
           </div>
-                    <button onClick={handleAdd} disabled={!!(hasVariants && !selectedVariant) || !!isLoading} className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
-                      <ShoppingBag className="h-3.5 w-3.5 mr-1" /> {hasVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
-                    </button>
-        </div>
+        ) : (
+          <button
+            onClick={handleAdd}
+            disabled={!!isLoading}
+            className="absolute inset-x-2 bottom-2 bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed not-disabled:cursor-pointer translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+          >
+            <ShoppingBag className="h-3.5 w-3.5 mr-1" /> Add to Bag
+          </button>
+        )}
       </div>
       <div className="pt-3 flex flex-col gap-1">
         <div className="text-xs tracking-widest text-neutral-400 uppercase">{String(brand).toUpperCase()}</div>

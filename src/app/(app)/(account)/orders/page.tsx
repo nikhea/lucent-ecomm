@@ -3,11 +3,11 @@ import type { Metadata } from 'next'
 
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 
-import { OrderItem } from '@/components/OrderItem'
 import { headers as getHeaders } from 'next/headers'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import { redirect } from 'next/navigation'
+import { AmazonOrdersClient } from '@/components/orders/AmazonOrdersClient'
 
 export default async function Orders() {
   const headers = await getHeaders()
@@ -27,6 +27,7 @@ export default async function Orders() {
       pagination: false,
       user,
       overrideAccess: false,
+      depth: 2,
       select: {
         orderNumber: true,
         amount: true,
@@ -35,6 +36,8 @@ export default async function Orders() {
         status: true,
         createdAt: true,
         updatedAt: true,
+        shippingAddress: true,
+        customerEmail: true,
       },
       sort: '-createdAt',
       where: {
@@ -47,26 +50,7 @@ export default async function Orders() {
     orders = (ordersResult?.docs as unknown as Order[]) || []
   } catch (error) {}
 
-  return (
-    <>
-      <div className="border p-8 rounded-lg bg-primary-foreground w-full">
-        <h1 className="text-3xl font-medium mb-8">Orders</h1>
-        {(!orders || !Array.isArray(orders) || orders?.length === 0) && (
-          <p className="">You have no orders.</p>
-        )}
-
-        {orders && orders.length > 0 && (
-          <ul className="flex flex-col gap-6">
-            {orders?.map((order, index) => (
-              <li key={order.id}>
-                <OrderItem order={order} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </>
-  )
+  return <AmazonOrdersClient orders={orders || []} />
 }
 
 export const metadata: Metadata = {

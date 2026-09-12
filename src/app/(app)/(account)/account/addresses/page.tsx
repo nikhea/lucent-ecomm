@@ -45,17 +45,26 @@ export default async function AddressesPage() {
   }
 
   return (
-    <>
-      <div className="border p-8 rounded-lg bg-primary-foreground">
-        <h1 className="text-3xl font-medium mb-8">Addresses</h1>
-
-        <div className="mb-8">
-          <AddressListing />
+    <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+      <div className="px-6 sm:px-8 py-6 sm:py-7 border-b bg-gradient-to-b from-muted/40 to-transparent">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Addresses</h1>
+            <p className="text-sm text-muted-foreground mt-1">Manage your saved addresses for faster checkout.</p>
+          </div>
+          <CreateAddressModal buttonText="Add a new address" />
         </div>
-
-        <CreateAddressModal />
+        {orders && orders.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-3">
+            {orders.length} recent order{orders.length !== 1 ? 's' : ''} · Default address used at checkout
+          </p>
+        )}
       </div>
-    </>
+
+      <div className="p-6 sm:p-8 bg-muted/20">
+        <AddressListing />
+      </div>
+    </div>
   )
 }
 

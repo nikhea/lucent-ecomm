@@ -26,12 +26,17 @@ export function VariantPlugType({ product }: { product: Product }) {
           const optionSearchParams = new URLSearchParams(searchParams.toString())
           optionSearchParams.delete('variant')
           optionSearchParams.set(plugType.name, String(opt.id))
-          const currentOptions = Array.from(optionSearchParams.values())
+          const selectedIds = Array.from(optionSearchParams.entries())
+            .filter(([k]) => k !== 'variant')
+            .map(([, v]) => v)
           let isAvailable = true
-          const matching = variants.find((v: any) => v.options?.every((o: any) => currentOptions.includes(String(typeof o === 'object' ? o.id : o))))
+          const matching = variants.find((v: any) => selectedIds.every((sid) => v.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === sid)))
           if (matching) {
             optionSearchParams.set('variant', String(matching.id))
             isAvailable = (matching.inventory ?? 0) > 0
+          } else {
+            const anyWithOption = variants.find((v: any) => v.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === String(opt.id)))
+            if (anyWithOption) isAvailable = (anyWithOption.inventory ?? 0) > 0
           }
           const href = `${pathname}?${optionSearchParams.toString()}`
           return (

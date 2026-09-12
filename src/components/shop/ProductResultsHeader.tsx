@@ -31,7 +31,7 @@ export function ProductResultsHeader({ total, filteredCount }: { total: number; 
   const count = active.length
 
   return (
-    <div className="rounded-xl border bg-white p-4 flex flex-col gap-3">
+    <div className="rounded-xl border bg-card p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm font-semibold">Product Results</div>

@@ -118,5 +118,9 @@ function CartCount() {
     return cart.items.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0)
   }, [cart])
   if (!count) return null
-  return <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">{count > 9 ? '9+' : count}</span>
+  return (
+    <span suppressHydrationWarning className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">
+      {count > 9 ? '9+' : count}
+    </span>
+  )
 }
