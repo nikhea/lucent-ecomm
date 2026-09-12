@@ -7,6 +7,7 @@ import { LivePreviewListener } from '@/components/LivePreviewListener'
 import { ensureStartsWith } from '@/utilities/ensureStartsWith'
 import { Providers } from '@/providers'
 import { InitTheme } from '@/providers/Theme/InitTheme'
+import { SiteChrome } from '@/components/SiteChrome'
 import { Space_Grotesk, PT_Serif, Space_Mono } from 'next/font/google'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import React from 'react'
@@ -61,9 +62,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <AdminBar />
             <LivePreviewListener />
 
-            <Header />
-            <main className="flex flex-1 flex-col pt-[64px]">{children}</main>
-            <Footer />
+            <SiteChrome header={<Header />} footer={<Footer />}>
+              {children}
+            </SiteChrome>
           </Providers>
         </NuqsAdapter>
       </body>

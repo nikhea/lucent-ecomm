@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 
-import { RenderParams } from '@/components/RenderParams'
-import Link from 'next/link'
+import { AuthShell } from '@/components/auth/AuthShell'
 import React from 'react'
 
 import { headers as getHeaders } from 'next/headers'
@@ -20,18 +19,22 @@ export default async function Login() {
   }
 
   return (
-    <div className="container">
-      <div className="max-w-xl mx-auto my-12">
-        <RenderParams />
-
-        <h1 className="mb-4 text-[1.8rem]">Log in</h1>
-        <p className="mb-8">
-          {`This is where your customers will login to manage their account, review their order history, and more. To manage all users, `}
-          <Link href="/admin/collections/users">login to the admin dashboard</Link>.
+    <AuthShell
+      eyebrow="Welcome back"
+      title="Sign in to Lucent"
+      description="Access your orders, saved addresses, and wishlist."
+      footer={
+        <p>
+          New here?{' '}
+          <a href="/create-account" className="font-medium text-foreground underline underline-offset-4">
+            Create an account
+          </a>{' '}
+          to check out faster next time.
         </p>
-        <LoginForm />
-      </div>
-    </div>
+      }
+    >
+      <LoginForm />
+    </AuthShell>
   )
 }
 

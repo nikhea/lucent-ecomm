@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-import { RenderParams } from '@/components/RenderParams'
+import { AuthShell } from '@/components/auth/AuthShell'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import React from 'react'
 import { headers as getHeaders } from 'next/headers'
@@ -20,11 +20,22 @@ export default async function CreateAccount() {
   }
 
   return (
-    <div className="container py-16">
-      <h1 className="text-xl mb-4">Create Account</h1>
-      <RenderParams />
+    <AuthShell
+      eyebrow="Join Lucent"
+      title="Create your account"
+      description="One account for faster checkout, order tracking, and saved favorites."
+      footer={
+        <p>
+          Already have an account?{' '}
+          <a href="/login" className="font-medium text-foreground underline underline-offset-4">
+            Sign in
+          </a>
+          .
+        </p>
+      }
+    >
       <CreateAccountForm />
-    </div>
+    </AuthShell>
   )
 }
 
