@@ -1,386 +1,337 @@
-# Payload Ecommerce Template
+# LUCENT — Headless Commerce Storefront
 
-This template is in **BETA**.
+LUCENT is a production-ready ecommerce experience built on **Next.js 16 (App Router)** and
+**Payload CMS 3** — a conversion-focused storefront with a full admin back office for
+products, orders, customers, content, and support flows. It started from the official
+Payload ecommerce template and has been extended into a complete, branded retail app.
 
-This is the official [Payload Ecommerce Template](https://github.com/payloadcms/payload/blob/3.x/templates/ecommerce). This repo includes a fully-working backend, enterprise-grade admin panel, and a beautifully designed, production-ready ecommerce website.
+**Live areas:** shop with faceted search · product pages with variants, reviews & stock states ·
+cart drawer + cart page · multi-step checkout (contact → address → Stripe payment) ·
+customer accounts, addresses, wishlist · order tracking, invoices (PDF), re-order and returns ·
+CMS-managed info pages (About, FAQ, Privacy, Terms, Returns, Contact, Shipping) · dark mode.
 
-This template is right for you if you are working on building an ecommerce project or shop with Payload.
+---
 
-Core features:
+## Table of contents
 
-- [Pre-configured Payload Config](#how-it-works)
-- [Authentication](#users-authentication)
-- [Access Control](#access-control)
-- [Layout Builder](#layout-builder)
-- [Draft Preview](#draft-preview)
-- [Live Preview](#live-preview)
-- [On-demand Revalidation](#on-demand-revalidation)
-- [SEO](#seo)
-- [Search & Filters](#search)
-- [Jobs and Scheduled Publishing](#jobs-and-scheduled-publish)
-- [Website](#website)
-- [Products & Variants](#products-and-variants)
-- [User accounts](#user-accounts)
-- [Carts](#carts)
-- [Guest checkout](#guests)
-- [Orders & Transactions](#orders-and-transactions)
-- [Stripe Payments](#stripe)
-- [Currencies](#currencies)
-- [Automated Tests](#tests)
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Quick start](#quick-start)
+- [Environment variables](#environment-variables)
+- [Seeding](#seeding)
+- [Project structure](#project-structure)
+- [Storefront guide](#storefront-guide)
+- [Managing the store (admin / CRM)](#managing-the-store-admin--crm)
+- [Payments (Stripe)](#payments-stripe)
+- [Invoices (PDF)](#invoices-pdf)
+- [Returns flow](#returns-flow)
+- [Reviews flow](#reviews-flow)
+- [Caching & revalidation](#caching--revalidation)
+- [Scripts](#scripts)
+- [Tests](#tests)
+- [Production & deployment](#production--deployment)
+- [Troubleshooting](#troubleshooting)
 
-## Quick Start
+---
 
-To spin up this example locally, follow these steps:
+## Features
 
-### Clone
+### Shop & discovery
 
-If you have not done so already, you need to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+- **Shop page** (`/shop`) with URL-synced filters (category, brand, size, price, rating,
+  features), sorting, pagination and search — shareable/filterable links via `nuqs`.
+- **Product pages** (`/products/[slug]`) with variant selection (size/color), gallery,
+  inventory-aware states (in stock / low stock / out of stock / select-a-size),
+  related products, specifications, and ratings summary.
+- **Dark mode** throughout (next-themes), including a Stripe Payment Element theme that
+  matches the site's dark card/input colors.
 
-Use the `create-payload-app` CLI to clone this template directly to your machine:
+### Cart & checkout
+
+- **Cart drawer** (slide-over, available site-wide) + full **cart page** (`/cart`) with
+  quantity steppers, stock validation, blocked-checkout messaging, and order summary.
+- **Stock-aware checkout guard** — out-of-stock lines block checkout until removed.
+- **Multi-step checkout**: contact → address → payment → confirmation, with progress
+  indicator, guest checkout, saved addresses for members, and order confirmation emails.
+- **Stripe payments** via Payment Element (cards, Link, Cash App Pay) with server-side
+  PaymentIntents and webhook fulfillment (`/api/payments/stripe/webhooks`).
+
+### Customer accounts
+
+- **Split-screen luxury auth** (`/login`, `/create-account`, `/forgot-password`) rendered
+  without the site header/footer, with password visibility toggles and loading states.
+- **Account dashboard** (`/account`): profile details, size profile, preferences,
+  password change.
+- **Addresses** (`/account/addresses`): full CRUD of shipping/billing addresses.
+- **Orders** (`/orders`): Delivered / Processing / Cancelled tabs, period filter,
+  per-item actions (Buy it again, Write a review in a dialog, invoice modal).
+- **Order details** (`/orders/[id]`): fulfillment timeline, shipments, order summary,
+  working invoice download, one-tap **Reorder**, and **Start a return**.
+- **Wishlist** (`/wishlist`): save-for-later with price-drop/almost-gone badges,
+  bulk add-to-cart, share-list link.
+- **Guest order lookup** (`/find-order`): email + order ID → secure access link
+  (access-token flow, no account needed).
+
+### Post-purchase
+
+- **Invoice modal** on every order with full breakdown + **serverless-safe PDF download**
+  (`@react-pdf/renderer` in a Node route handler — no browser binary).
+- **Reorder** re-adds the original variants/quantities with per-item failure handling.
+- **Return requests**: dialog (items, quantities, reason, comments) → `return-requests`
+  collection in the admin with pending/approved/rejected/completed workflow and 30-day
+  window enforcement.
+- **Reviews**: verified-purchase gating, one review per customer per product,
+  admin moderation queue, star input, helpfulness votes.
+
+### Content (all CRM-editable)
+
+- CMS **Pages** with layout builder (hero, content, media, forms, product showcases…)
+  rendered at `/[slug]`, with SEO meta per page.
+- Ready-made info pages: **About Us, FAQ (incl. shipping details), Privacy Policy,
+  Terms of Service, Returns, Contact** (with working contact form).
+- **Header/Footer globals** with nav, newsletter, socials and link columns — edits
+  revalidate instantly via cache tags.
+
+---
+
+## Tech stack
+
+| Layer        | Choice                                                        |
+| ------------ | ------------------------------------------------------------- |
+| Framework    | Next.js 16 App Router, React 19, TypeScript                   |
+| CMS / Admin  | Payload CMS 3 (MongoDB adapter, Lexical rich text, SEO plugin) |
+| Commerce     | `@payloadcms/plugin-ecommerce` (products, variants, carts, orders, transactions, addresses) |
+| Payments     | Stripe (Payment Element, PaymentIntents, webhooks)            |
+| PDF          | `@react-pdf/renderer` (server-side, serverless-safe)          |
+| Styling      | Tailwind CSS 4, shadcn/ui (Radix), Lucide icons, dark mode    |
+| State/URL    | zustand (cart, wishlist), nuqs (URL-synced shop filters)      |
+| Forms/Email  | react-hook-form, Payload form-builder, nodemailer             |
+| Media        | Cloudinary (via payload-cloud-storage plugin)                 |
+| Tests        | Vitest (integration), Playwright (e2e)                        |
+
+---
+
+## Quick start
+
+Prerequisites: Node 18.20+ or 20.9+ (see `engines`), pnpm, a MongoDB database
+(local `mongod` or Atlas).
 
 ```bash
-pnpx create-payload-app my-project -t ecommerce
+git clone <this-repo> lucent
+cd lucent
+cp .env.example .env        # then fill in values (see below)
+pnpm install
+pnpm dev                    # http://localhost:3000
 ```
 
-### Development
-
-1. First [clone the repo](#clone) if you have not done so already
-1. `cd my-project && cp .env.example .env` to copy the example environment variables
-1. `pnpm install && pnpm dev` to install dependencies and start the dev server
-1. open `http://localhost:3000` to open the app in your browser
-
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
-
-## How it works
-
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
-
-### Collections
-
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
-
-- #### Users (Authentication)
-
-  Users are auth-enabled collections that have access to the admin panel and unpublished content. See [Access Control](#access-control) for more details.
-
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/3.x/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
-
-- #### Pages
-
-  All pages are layout builder enabled so you can generate unique layouts for each page using layout-building blocks, see [Layout Builder](#layout-builder) for more details. Pages are also draft-enabled so you can preview them before publishing them to your website, see [Draft Preview](#draft-preview) for more details.
-
-- #### Media
-
-  This is the uploads enabled collection used by pages, posts, and projects to contain media like images, videos, downloads, and other assets. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
-
-- #### Categories
-
-  A taxonomy used to group products together.
-
-- ### Carts
-
-  Used to track user and guest carts within Payload. Added by the [ecommerce plugin](https://payloadcms.com/docs/ecommerce/plugin#carts).
-
-- ### Addresses
-
-  Saves user's addresses for easier checkout. Added by the [ecommerce plugin](https://payloadcms.com/docs/ecommerce/plugin#addresses).
-
-- ### Orders
-
-  Tracks orders once a transaction successfully completes. Added by the [ecommerce plugin](https://payloadcms.com/docs/ecommerce/plugin#orders).
-
-- ### Transactions
-
-  Tracks transactions from initiation to completion, once completed they will have a related Order item. Added by the [ecommerce plugin](https://payloadcms.com/docs/ecommerce/plugin#transactions).
-
-- ### Products and Variants
-
-  Primary collections for product details such as pricing per currency and optionally supports variants per product. Added by the [ecommerce plugin](https://payloadcms.com/docs/ecommerce/plugin#products).
-
-### Globals
-
-See the [Globals](https://payloadcms.com/docs/configuration/globals) docs for details on how to extend this functionality.
-
-- `Header`
-
-  The data required by the header on your front-end like nav links.
-
-- `Footer`
-
-  Same as above but for the footer of your site.
-
-## Access control
-
-Basic access control is setup to limit access to various content based based on publishing status.
-
-- `users`: Users with the `admin` role can access the admin panel and create or edit content, users with the `customer` role can only access the frontend and the relevant collection items to themselves.
-- `pages`: Everyone can access published pages, but only admin users can create, update, or delete them.
-- `products` `variants`: Everyone can access published products, but only admin users can create, update, or delete them.
-- `carts`: Customers can access their own saved cart, guest users can access any unclaimed cart by ID.
-- `addresses`: Customers can access their own addresses for record keeping.
-- `transactions`: Only admins can access these as they're meant for internal tracking.
-- `orders`: Only admins and users who own the orders can access these. Guests require a valid `accessToken` (sent via email) along with the order's email to view order details.
-
-For more details on how to extend this functionality, see the [Payload Access Control](https://payloadcms.com/docs/access-control/overview#access-control) docs.
-
-## User accounts
-
-Registered users can log in to view their order history, manage saved addresses, and track ongoing orders directly from their account dashboard.
-
-## Guests
-
-Guest checkout allows users to complete purchases without creating an account. When a guest places an order:
-
-1. The order is associated with their email address
-2. A unique `accessToken` is generated for secure order lookup
-3. An order confirmation email is sent containing a secure link to view the order
-
-To look up an order as a guest, users visit `/find-order`, enter their email and order ID, and receive an email with a secure access link. This prevents order enumeration attacks where malicious users could iterate through sequential order IDs to access other customers' order information.
-
-## Layout Builder
-
-Create unique page layouts for any type of content using a powerful layout builder. This template comes pre-configured with the following layout building blocks:
-
-- Hero
-- Content
-- Media
-- Call To Action
-- Archive
-
-Each block is fully designed and built into the front-end website that comes with this template. See [Website](#website) for more details.
-
-## Lexical editor
-
-A deep editorial experience that allows complete freedom to focus just on writing content without breaking out of the flow with support for Payload blocks, media, links and other features provided out of the box. See [Lexical](https://payloadcms.com/docs/rich-text/overview) docs.
-
-## Draft Preview
-
-All products and pages are draft-enabled so you can preview them before publishing them to your website. To do this, these collections use [Versions](https://payloadcms.com/docs/configuration/collections#versions) with `drafts` set to `true`. This means that when you create a new product or page, it will be saved as a draft and will not be visible on your website until you publish it. This also means that you can preview your draft before publishing it to your website. To do this, we automatically format a custom URL which redirects to your front-end to securely fetch the draft version of your content.
-
-Since the front-end of this template is statically generated, this also means that pages, products, and projects will need to be regenerated as changes are made to published documents. To do this, we use an `afterChange` hook to regenerate the front-end when a document has changed and its `_status` is `published`.
-
-For more details on how to extend this functionality, see the official [Draft Preview Example](https://github.com/payloadcms/payload/tree/3.x/examples/draft-preview).
-
-## Live preview
-
-In addition to draft previews you can also enable live preview to view your end resulting page as you're editing content with full support for SSR rendering. See [Live preview docs](https://payloadcms.com/docs/live-preview/overview) for more details.
-
-## On-demand Revalidation
-
-We've added hooks to collections and globals so that all of your pages, products, footer, or header changes will automatically be updated in the frontend via on-demand revalidation supported by Nextjs.
-
-> Note: if an image has been changed, for example it's been cropped, you will need to republish the page it's used on in order to be able to revalidate the Nextjs image cache.
-
-## SEO
-
-This template comes pre-configured with the official [Payload SEO Plugin](https://payloadcms.com/docs/plugins/seo) for complete SEO control from the admin panel. All SEO data is fully integrated into the front-end website that comes with this template. See [Website](#website) for more details.
-
-## Search
-
-This template comes with SSR search features can easily be implemented into Next.js with Payload. See [Website](#website) for more details.
-
-## Orders and Transactions
-
-Transactions are intended for keeping a record of any payment made, as such it will contain information regarding an order or billing address used or the payment method used and amount. Only admins can access transactions.
-
-An order is created only once a transaction is successfully completed. This is a record that the user who completed the transaction has access so they can keep track of their history.
-
-### Guest Order Access
-
-Guest users can securely access their orders through the `/find-order` page:
-
-1. Guest enters their email address and order ID
-2. If the order exists and matches the email, an access link is sent to their email
-3. The link contains a secure `accessToken` that grants temporary access to view the order
-
-This email verification flow prevents unauthorized access to order details. The `accessToken` is a unique UUID generated when the order is created and is required (along with the email) to view order details as a guest.
-
-**Security note:** Order confirmation emails should include the order ID so guests can use the "Find Order" feature. The access token is only sent via the verification email to prevent enumeration attacks.
-
-## Currencies
-
-By default the template ships with support only for USD however you can change the supported currencies via the [plugin configuration](https://payloadcms.com/docs/ecommerce/plugin#currencies). You will need to ensure that the supported currencies in Payload are also configured in your Payment platforms.
-
-## Stripe
-
-By default we ship with the Stripe adapter configured, so you'll need to setup the `secretKey`, `publishableKey` and `webhookSecret` from your Stripe dashboard. Follow [Stripe's guide](https://docs.stripe.com/get-started/api-request?locale=en-GB) on how to set this up.
-
-## Tests
-
-We provide automated tests out of the box for both E2E and Int tests along with this template. They are being run in our CI to ensure the stability of this template over time. You can integrate them into your CI or run them locally as well via:
-
-To run Int tests wtih Vitest:
-
-```bash
-pnpm test:int
+Open `http://localhost:3000/admin` and create your first user — the first user
+becomes admin automatically.
+
+> The dev server must be **restarted** after changing `src/payload.config.ts`
+> (collections/globals load once at boot). Frontend file changes hot-reload.
+
+---
+
+## Environment variables
+
+Copy `.env.example` to `.env`. Required groups:
+
+| Variable | Purpose |
+| -------- | ------- |
+| `PAYLOAD_SECRET` | Payload session encryption (`openssl rand -hex 32`) |
+| `DATABASE_URL` | Mongo connection string (`mongodb://127.0.0.1/lucent` locally) |
+| `NEXT_PUBLIC_SERVER_URL` / `PAYLOAD_PUBLIC_SERVER_URL` | Public base URL — must match in prod (SEO, Stripe webhooks, emails) |
+| `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOKS_SIGNING_SECRET` | Stripe (use `stripe listen --forward-to localhost:3000/api/payments/stripe/webhooks` locally) |
+| `EMAIL_ADDRESS`, `EMAIL_PASSWORD`, `EMAIL_SERVICE` | Order confirmations, password resets, guest access links |
+| `CLOUDINARY_URL` / `CLOUD_*` | Product/media uploads |
+| `PREVIEW_SECRET` | Draft preview links |
+
+Never commit real secrets — `.env` is git-ignored.
+
+---
+
+## Seeding
+
+> ⚠️ The main seed (`POST /next/seed`, admin only) **wipes the database** and
+> rebuilds demo products, pages, forms and users. Only use it for fresh setups.
+
+Non-destructive, safe to re-run anytime:
+
+| Endpoint (admin `POST`) | What it does |
+| ----------------------- | ------------ |
+| `/next/seed-info-pages` | Creates missing info pages (about, FAQ, privacy, terms, returns, contact, shipping) with professional copy + SEO meta; upgrades contact with the contact form; fills empty footer link columns. **Never overwrites existing pages.** |
+
+Demo customer (main seed): `customer@example.com` / `password`.
+
+---
+
+## Project structure
+
+```
+src/
+├── app/
+│   ├── (app)/                 # storefront routes
+│   │   ├── shop/              # faceted product listing
+│   │   ├── products/[slug]/   # product pages
+│   │   ├── cart/              # cart page
+│   │   ├── checkout/          # contact → address → payment → confirm
+│   │   ├── login|create-account|forgot-password|logout/
+│   │   ├── (account)/         # account, addresses, orders, orders/[id]
+│   │   ├── wishlist/ find-order/
+│   │   ├── [slug]/            # CMS pages (about, faq, privacy, …)
+│   │   ├── api/
+│   │   │   ├── orders/[id]/invoice/  # owner-checked invoice PDF
+│   │   │   ├── returns/              # return-request creation
+│   │   │   ├── review-eligibility/   # purchase verification
+│   │   │   └── reviews|payments/stripe/…
+│   │   └── next/seed*         # admin-only seed endpoints
+│   └── (payload)/             # admin UI + Payload REST/GraphQL
+├── blocks/                    # page-builder blocks (hero, content, promos…)
+├── collections/               # Users, Pages, Products, Reviews, ReturnRequests, …
+├── components/
+│   ├── auth/                  # AuthShell (standalone auth layout)
+│   ├── cart/ orders/ wishlist/ checkout/ product/ shop/
+│   ├── forms/                 # Login, Account, Address, Review, Checkout…
+│   └── ui/                    # shadcn/ui primitives
+├── globals/                   # Header, Footer (+ instant-revalidate hooks)
+├── endpoints/seed/            # seed data incl. info-pages
+├── store/                     # zustand cart + wishlist stores
+├── providers/                 # Auth, Theme, Checkout context
+└── payload.config.ts          # collections, globals, plugins, email, jobs
 ```
 
-To run E2Es with Playwright:
+---
 
-```bash
-pnpm test:e2e
-```
+## Storefront guide
 
-or
+- **Shop** — filters live in the URL (`?brands=…&sizes=…&minPrice=…`); sort and
+  pagination included. Product cards show badges (sale/new/bestseller), ratings,
+  variant-aware pricing and stock states.
+- **Product page** — pick size/color to resolve the exact variant, inventory and
+  price; quantity + Add to bag; wishlist heart; tabs for details/shipping/reviews.
+- **Cart** — drawer for quick edits, `/cart` for full review. Lines with no stock
+  show a muted-red notice and block checkout until removed ("Remove all unavailable").
+- **Checkout** — requires contact + address steps first (guards redirect otherwise);
+  payment step mounts Stripe's Payment Element themed to the site; success clears
+  the cart and shows confirmation with order number.
+- **Auth pages** hide the global header/footer and use their own minimal bar —
+  this is handled by `SiteChrome`, which also skips top padding on auth routes.
 
-```bash
-pnpm test
-```
+---
 
-To run both.
+## Managing the store (admin / CRM)
 
-## Jobs and Scheduled Publish
+Open `/admin` (admin role required):
 
-We have configured [Scheduled Publish](https://payloadcms.com/docs/versions/drafts#scheduled-publish) which uses the [jobs queue](https://payloadcms.com/docs/jobs-queue/jobs) in order to publish or unpublish your content on a scheduled time. The tasks are run on a cron schedule and can also be run as a separate instance if needed.
+- **Products / Variants / Categories / Collections** — catalog, pricing per currency,
+  inventory, galleries, related products.
+- **Orders / Transactions / Carts** — fulfillment tracking, payment records.
+  Guests are identified by email + `accessToken`.
+- **Reviews** — moderation queue (`pending → approved/rejected`); only approved
+  reviews render, and only verified buyers can submit.
+- **Return Requests** (`Commerce` group) — approve/reject/complete customer returns.
+- **Pages** — edit every info page's copy, hero and SEO; changes revalidate the
+  frontend immediately.
+- **Header / Footer globals** — nav, quick links, legal links, newsletter, socials.
+- **Users / Customer Profiles / Wishlists / Coupons / Notifications / Media / Forms.**
 
-> Note: When deployed on Vercel, depending on the plan tier, you may be limited to daily cron only.
+---
 
-## Website
+## Payments (Stripe)
 
-This template includes a beautifully designed, production-ready front-end built with the [Next.js App Router](https://nextjs.org), served right alongside your Payload app in a instance. This makes it so that you can deploy both your backend and website where you need it.
+1. Set the three `STRIPE_*` env vars.
+2. Local webhooks: `pnpm stripe-webhooks`
+   (forwards to `/api/payments/stripe/webhooks`).
+3. The checkout creates a PaymentIntent server-side; the transaction/order is
+   finalized in the webhook handler — **always test with webhooks running**,
+   otherwise orders stay pending.
+4. Publishable key is loaded once (`loadStripe`) and the Payment Element inherits
+   the site theme (light + dark palettes are mapped explicitly in
+   `checkout/payment/page.tsx` and `CheckoutPage.tsx`).
 
-Core features:
+---
 
-- [Next.js App Router](https://nextjs.org)
-- [TypeScript](https://www.typescriptlang.org)
-- [React Hook Form](https://react-hook-form.com)
-- [Payload Admin Bar](https://github.com/payloadcms/payload/tree/3.x/packages/admin-bar)
-- [TailwindCSS styling](https://tailwindcss.com/)
-- [shadcn/ui components](https://ui.shadcn.com/)
-- User Accounts and Authentication
-- Fully featured blog
-- Publication workflow
-- Dark mode
-- Pre-made layout building blocks
-- SEO
-- Search
-- Live preview
-- Stripe payments
+## Invoices (PDF)
 
-### Cache
+- The **View invoice** modal shows the full breakdown; **Download PDF** calls
+  `GET /api/orders/:id/invoice`, which owner-checks (login **or** guest
+  email + access token) and renders `InvoiceDocument` with `@react-pdf/renderer`.
+- Serverless-safe by design: pure-JS rendering, `runtime = 'nodejs'`,
+  `serverExternalPackages`, built-in Helvetica (no remote font fetching —
+  the usual cold-start failure), in-memory buffer, no filesystem use.
 
-Although Next.js includes a robust set of caching strategies out of the box, Payload Cloud proxies and caches all files through Cloudflare using the [Official Cloud Plugin](https://www.npmjs.com/package/@payloadcms/payload-cloud). This means that Next.js caching is not needed and is disabled by default. If you are hosting your app outside of Payload Cloud, you can easily reenable the Next.js caching mechanisms by removing the `no-store` directive from all fetch requests in `./src/app/_api` and then removing all instances of `export const dynamic = 'force-dynamic'` from pages files, such as `./src/app/(pages)/[slug]/page.tsx`. For more details, see the official [Next.js Caching Docs](https://nextjs.org/docs/app/building-your-application/caching).
+---
 
-## Development
+## Returns flow
 
-To spin up this example locally, follow the [Quick Start](#quick-start). Then [Seed](#seed) the database with a few pages, posts, and projects.
+1. Customer clicks **Start a return** → dialog with order lines, quantity steppers,
+   reason select and comments.
+2. `POST /api/returns` validates ownership, the **30-day window**, and that items
+   belong to the order (quantities clamped to purchased amounts).
+3. A `return-requests` doc is created as `pending` (customers can never set status).
+4. Admin reviews in `/admin` → approves/rejects/completes; refund/replacement is
+   handled manually (e.g. in Stripe).
 
-### Working with Postgres
+---
 
-Postgres and other SQL-based databases follow a strict schema for managing your data. In comparison to our MongoDB adapter, this means that there's a few extra steps to working with Postgres.
+## Reviews flow
 
-Note that often times when making big schema changes you can run the risk of losing data if you're not manually migrating it.
+1. Product page and order items open the review dialog (stars, title, comment).
+2. `/api/review-eligibility` confirms the signed-in user purchased the product.
+3. Submissions land in `reviews` as `pending`; one review per customer per product
+   (updates re-queue for approval); only `approved` reviews render publicly.
 
-#### Local development
+---
 
-Ideally we recommend running a local copy of your database so that schema updates are as fast as possible. By default the Postgres adapter has `push: true` for development environments. This will let you add, modify and remove fields and collections without needing to run any data migrations.
+## Caching & revalidation
 
-If your database is pointed to production you will want to set `push: false` otherwise you will risk losing data or having your migrations out of sync.
+- Footer/Header globals use `unstable_cache` tagged `global_<slug>`; `afterChange`
+  hooks (`src/globals/hooks/revalidateGlobal.ts`) revalidate instantly on admin edits.
+- Pages revalidate on publish via `revalidatePage`; info-page seeds write with
+  `disableRevalidate` and rely on on-demand paths.
+- Shop filters are URL state — shareable and back-button safe.
 
-#### Migrations
+---
 
-[Migrations](https://payloadcms.com/docs/database/migrations) are essentially SQL code versions that keeps track of your schema. When deploy with Postgres you will need to make sure you create and then run your migrations.
+## Scripts
 
-Locally create a migration
+| Command | Purpose |
+| ------- | ------- |
+| `pnpm dev` | Dev server (Next + Payload admin) |
+| `pnpm build` / `pnpm start` | Production build / serve |
+| `pnpm lint` / `pnpm lint:fix` | ESLint |
+| `pnpm generate:types` / `generate:importmap` | Regenerate Payload types/import map (run after collection changes) |
+| `pnpm payload` | Payload CLI (`migrate:create`, `migrate`, …) |
+| `pnpm stripe-webhooks` | Forward Stripe webhooks locally |
+| `pnpm test` / `test:int` / `test:e2e` | Vitest + Playwright |
 
-```bash
-pnpm payload migrate:create
-```
+Typecheck: `./node_modules/.bin/tsc --noEmit` (known pre-existing errors in
+`CartModal.tsx` and `generatePreviewPath.ts` predate this work).
 
-This creates the migration files you will need to push alongside with your new configuration.
+---
 
-On the server after building and before running `pnpm start` you will want to run your migrations
+## Production & deployment
 
-```bash
-pnpm payload migrate
-```
+1. `pnpm build && pnpm start`.
+2. Set production env: Atlas `DATABASE_URL`, public URLs, live Stripe keys +
+   webhook endpoint, transactional email provider (Resend/SendGrid recommended
+   over Gmail), Cloudinary production preset.
+3. MongoDB needs no migrations (schemaless). If you switch to Postgres, run
+   `pnpm payload migrate:create` locally and `pnpm payload migrate` on the server.
+4. Deployable anywhere Node runs (VPS, Render, Railway, Coolify) or Payload Cloud;
+   on Vercel note cron limits for scheduled publishing and keep PDF generation
+   on the Node runtime (already configured).
 
-This command will check for any migrations that have not yet been run and try to run them and it will keep a record of migrations that have been run in the database.
+---
 
-### Docker
+## Troubleshooting
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
-
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
-
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
-
-### Seed
-
-To seed the database with a few pages, products, and orders you can click the 'seed database' link from the admin panel.
-
-The seed script will also create a demo user for demonstration purposes only:
-
-- Demo Customer
-  - Email: `customer@example.com`
-  - Password: `password`
-
-> NOTICE: seeding the database is destructive because it drops your current database to populate a fresh one from the seed template. Only run this command if you are starting a new project or can afford to lose your current data.
-
-## Production
-
-To run Payload in production, you need to build and start the Admin panel. To do so, follow these steps:
-
-1. Invoke the `next build` script by running `pnpm build` or `npm run build` in your project root. This creates a `.next` directory with a production-ready admin bundle.
-1. Finally run `pnpm start` or `npm run start` to run Node in production and serve Payload from the `.build` directory.
-1. When you're ready to go live, see Deployment below for more details.
-
-### Deploying to Vercel
-
-This template can also be deployed to Vercel for free. You can get started by choosing the Vercel DB adapter during the setup of the template or by manually installing and configuring it:
-
-```bash
-pnpm add @payloadcms/db-vercel-postgres
-```
-
-```ts
-// payload.config.ts
-import { vercelPostgresAdapter } from '@payloadcms/db-vercel-postgres'
-
-export default buildConfig({
-  // ...
-  db: vercelPostgresAdapter({
-    pool: {
-      connectionString: process.env.POSTGRES_URL || '',
-    },
-  }),
-  // ...
-```
-
-We also support Vercel's blob storage:
-
-```bash
-pnpm add @payloadcms/storage-vercel-blob
-```
-
-```ts
-// payload.config.ts
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
-
-export default buildConfig({
-  // ...
-  plugins: [
-    vercelBlobStorage({
-      collections: {
-        [Media.slug]: true,
-      },
-      token: process.env.BLOB_READ_WRITE_TOKEN || '',
-    }),
-  ],
-  // ...
-```
-
-### Self-hosting
-
-Before deploying your app, you need to:
-
-1. Ensure your app builds and serves in production. See [Production](#production) for more details.
-2. You can then deploy Payload as you would any other Node.js or Next.js application either directly on a VPS, DigitalOcean's Apps Platform, via Coolify or more. More guides coming soon.
-
-You can also deploy your app manually, check out the [deployment documentation](https://payloadcms.com/docs/production/deployment) for full details.
-
-## Questions
-
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+| Symptom | Fix |
+| ------- | --- |
+| New collection missing in admin | **Restart the dev server** — collections load once at boot |
+| Stale header/footer after CRM edit | Hard-refresh; hooks revalidate tags automatically — check the tag key version in `getGlobals.ts` |
+| Orders stuck pending | Stripe webhooks not running/reachable — start `pnpm stripe-webhooks` |
+| `/api/.../invoice` 401/403 | Logged out (or wrong guest token) — sign in or use the emailed access link |
+| Return rejected as outside window | 30-day policy enforced server-side; adjust in `api/returns/route.ts` if policy changes |
+| `pnpm` triggers unwanted installs | Use `./node_modules/.bin/<bin>` directly (corepack quirk in this repo) |
+| Seeded pages 404 | Run `POST /next/seed-info-pages` as admin; footer links live in the Footer global |
