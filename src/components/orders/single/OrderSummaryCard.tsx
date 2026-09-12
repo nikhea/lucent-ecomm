@@ -1,5 +1,7 @@
 import { Price } from '@/components/Price'
-import { Download, RotateCcw, RefreshCw } from 'lucide-react'
+import { DownloadInvoiceButton } from '@/components/orders/DownloadInvoiceButton'
+import { ReorderButton, type ReorderLine } from '@/components/orders/ReorderButton'
+import { RotateCcw } from 'lucide-react'
 
 type Address = {
   name: string
@@ -19,9 +21,11 @@ type Props = {
   tax: number
   total: number
   currency?: string
-  onDownloadInvoice?: () => void
+  orderId?: string
+  guestEmail?: string
+  guestToken?: string
+  reorderItems?: ReorderLine[]
   onStartReturn?: () => void
-  onReorder?: () => void
   className?: string
 }
 
@@ -33,9 +37,11 @@ export const OrderSummaryCard: React.FC<Props> = ({
   tax,
   total,
   currency = 'USD',
-  onDownloadInvoice,
+  orderId,
+  guestEmail,
+  guestToken,
+  reorderItems,
   onStartReturn,
-  onReorder,
   className,
 }) => {
   return (
@@ -84,24 +90,16 @@ export const OrderSummaryCard: React.FC<Props> = ({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          onClick={onDownloadInvoice}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border bg-card text-xs font-medium hover:bg-muted"
-        >
-          <Download className="h-3.5 w-3.5" /> Download invoice
-        </button>
+        {orderId ? (
+          <DownloadInvoiceButton orderId={orderId} email={guestEmail} accessToken={guestToken} />
+        ) : null}
         <button
           onClick={onStartReturn}
           className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border bg-card text-xs font-medium hover:bg-muted"
         >
           <RotateCcw className="h-3.5 w-3.5" /> Start a return
         </button>
-        <button
-          onClick={onReorder}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border bg-card text-xs font-medium hover:bg-muted"
-        >
-          <RefreshCw className="h-3.5 w-3.5" /> Reorder
-        </button>
+        {reorderItems && reorderItems.length > 0 ? <ReorderButton items={reorderItems} /> : null}
       </div>
     </div>
   )

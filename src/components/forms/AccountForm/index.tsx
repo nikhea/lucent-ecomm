@@ -181,7 +181,7 @@ export const AccountForm: React.FC = () => {
   }, [user, router, resetAll, changePassword])
 
   return (
-    <form className="max-w-xl" onSubmit={handleSubmit(changePassword ? onPasswordSubmit : onSubmit)}>
+    <form className="max-w-xl [&_[data-slot=label]]:text-black dark:[&_[data-slot=label]]:text-white" onSubmit={handleSubmit(changePassword ? onPasswordSubmit : onSubmit)}>
       {!changePassword ? (
         <Fragment>
           <div className="prose dark:prose-invert mb-8">

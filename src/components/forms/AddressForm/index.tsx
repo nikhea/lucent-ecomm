@@ -52,7 +52,7 @@ export const AddressForm: React.FC<Props> = ({ addressID, initialData, callback,
   const withIcon = 'pl-9 h-10 bg-card border-muted-foreground/20 focus-visible:ring-black/10 rounded-lg'
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-0">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-0 [&_[data-slot=label]]:text-black dark:[&_[data-slot=label]]:text-white">
       <div className="flex items-center gap-3 px-3.5 py-3 mb-5 rounded-xl bg-muted/30 border border-dashed">
         <span className="h-8 w-8 rounded-lg bg-card border shadow-sm flex items-center justify-center shrink-0"><MapPin className="h-4 w-4 text-muted-foreground" /></span>
         <div className="flex-1 min-w-0">

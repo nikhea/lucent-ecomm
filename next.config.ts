@@ -10,8 +10,9 @@ import { redirects } from './redirects'
 const NEXT_PUBLIC_SERVER_URL = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
 const nextConfig: NextConfig = {
-  // Temporarily required on Windows until Next.js fixes Turbopack Sass resolution.
-  // See: https://github.com/vercel/next.js/issues/86431
+  // @react-pdf/renderer must run unbundled in Node (uses Node APIs) —
+  // this also keeps it out of serverless bundles' bundled code.
+  serverExternalPackages: ['@react-pdf/renderer'],
   sassOptions: {
     loadPaths: ['./node_modules/@payloadcms/ui/dist/scss/'],
   },

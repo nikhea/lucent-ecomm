@@ -276,6 +276,19 @@ export default async function Order({ params, searchParams }: PageProps) {
           shipping="Free"
           tax={tax}
           total={total}
+          orderId={String(orderNumber)}
+          guestEmail={email || undefined}
+          guestToken={accessToken || undefined}
+          reorderItems={allItems.map((it: any) => {
+            const p = it.product
+            const v = it.variant && typeof it.variant === 'object' ? it.variant : null
+            return {
+              productId: String(typeof p === 'object' ? p.id : p),
+              variantId: v?.id ? String(v.id) : typeof it.variant === 'string' ? it.variant : null,
+              quantity: it.quantity || 1,
+              title: (typeof p === 'object' ? p.title : null) || 'Item',
+            }
+          })}
           className="lg:sticky lg:top-20"
         />
       </div>

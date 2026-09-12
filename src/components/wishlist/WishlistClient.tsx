@@ -256,13 +256,13 @@ export function WishlistClient() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     {row.outOfStock ? (
-                      <Button className="cursor-pointer disabled:pointer-events-auto disabled:cursor-not-allowed" disabled size="sm" variant="outline"><Bell data-icon="inline-start" /> Notify Me</Button>
+                      <Button aria-label="Notify me when available" disabled size="icon" title="Notify me when available" variant="ghost"><Bell data-icon="inline-start" /></Button>
                     ) : (
-                      <Button className="cursor-pointer disabled:pointer-events-auto disabled:cursor-not-allowed" disabled={addingId === row.doc.id} onClick={() => addOne(row)} size="sm" variant="outline">
-                        <ShoppingBag data-icon="inline-start" /> {addingId === row.doc.id ? 'Adding…' : 'Add to Cart'}
+                      <Button aria-label="Add to cart" className="cursor-pointer disabled:pointer-events-auto disabled:cursor-not-allowed" disabled={addingId === row.doc.id} onClick={() => addOne(row)} size="icon" title="Add to cart" variant="ghost">
+                        <ShoppingBag data-icon="inline-start" />
                       </Button>
                     )}
-                    <Button aria-label="Remove" onClick={() => handleRemove(row.doc.id)} size="icon" variant="ghost"><X data-icon="inline-start" /></Button>
+                    <Button aria-label="Remove from wishlist" onClick={() => handleRemove(row.doc.id)} size="icon" title="Remove from wishlist" variant="ghost"><X data-icon="inline-start" /></Button>
                   </div>
                 </div>
               </div>

@@ -4,6 +4,9 @@ import { useState, useMemo } from 'react'
 import { Media } from '@/components/Media'
 import { Price } from '@/components/Price'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { ReviewForm } from '@/components/product/ReviewForm'
+import { InvoiceDialog } from '@/components/orders/InvoiceDialog'
 import { EmptyState } from '@/components/EmptyState'
 import { formatDateTime } from '@/utilities/formatDateTime'
 import type { Order } from '@/payload-types'
@@ -18,17 +21,19 @@ function getShippedName(order: Order) {
 function deliveredLabel(order: Order) {
   const status = (order as any).status
   if (status === 'cancelled' || status === 'refunded') return `Cancelled`
+  if (status === 'processing' || !status) return `Processing`
   const d = (order as any).updatedAt || order.createdAt
   return `Delivered ${formatDateTime({ date: d, format: 'MMM dd, yyyy' })}`
 }
 
 export const AmazonOrdersClient: React.FC<{ orders: Order[] }> = ({ orders }) => {
-  const [tab, setTab] = useState<'delivered' | 'cancelled'>('delivered')
+  const [tab, setTab] = useState<'delivered' | 'processing' | 'cancelled'>('delivered')
   const [period, setPeriod] = useState('3m')
 
   const filtered = useMemo(() => {
     let list = [...orders]
-    if (tab === 'delivered') list = list.filter((o) => (o as any).status !== 'cancelled' && (o as any).status !== 'refunded')
+    if (tab === 'delivered') list = list.filter((o) => (o as any).status === 'completed')
+    else if (tab === 'processing') list = list.filter((o) => (o as any).status === 'processing' || !(o as any).status)
     else list = list.filter((o) => (o as any).status === 'cancelled' || (o as any).status === 'refunded')
     if (period !== 'all') {
       const now = Date.now()
@@ -58,6 +63,12 @@ export const AmazonOrdersClient: React.FC<{ orders: Order[] }> = ({ orders }) =>
             Delivered
           </button>
           <button
+            onClick={() => setTab('processing')}
+            className={`px-4 py-1.5 rounded-md font-medium transition-colors ${tab === 'processing' ? 'bg-card shadow border dark:bg-card' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Processing
+          </button>
+          <button
             onClick={() => setTab('cancelled')}
             className={`px-4 py-1.5 rounded-md font-medium transition-colors ${tab === 'cancelled' ? 'bg-card shadow border' : 'text-muted-foreground hover:text-foreground'}`}
           >
@@ -83,8 +94,8 @@ export const AmazonOrdersClient: React.FC<{ orders: Order[] }> = ({ orders }) =>
         <div className="mt-8 flex min-h-[50vh] flex-col justify-center">
           <EmptyState
             preset="orders"
-            title={tab === 'cancelled' ? 'No cancelled orders' : 'No orders found'}
-            description={tab === 'cancelled' ? 'You have no cancelled orders.' : undefined}
+            title={tab === 'cancelled' ? 'No cancelled orders' : tab === 'processing' ? 'No processing orders' : 'No orders found'}
+            description={tab === 'cancelled' ? 'You have no cancelled orders.' : tab === 'processing' ? 'Orders being prepared will appear here.' : undefined}
           />
         </div>
       ) : (
@@ -121,9 +132,7 @@ export const AmazonOrdersClient: React.FC<{ orders: Order[] }> = ({ orders }) =>
                         View order details
                       </Link>
                       <span className="text-border">|</span>
-                      <Link href={`/orders/${(order as any).orderNumber || order.id}`} className="hover:underline">
-                        View invoice
-                      </Link>
+                      <InvoiceDialog order={order} />
                     </div>
                   </div>
                 </div>
@@ -138,6 +147,7 @@ export const AmazonOrdersClient: React.FC<{ orders: Order[] }> = ({ orders }) =>
                       const img = (product as any).gallery?.[0]?.image || (product as any).meta?.image
                       const title = (product as any).title || 'Product'
                       const slug = (product as any).slug
+                      const productId = String((product as any).id || '')
                       const eligible = new Date(new Date(order.createdAt).getTime() + 30 * 24 * 3600 * 1000)
                       const eligibleStr = formatDateTime({ date: eligible.toISOString(), format: 'MMM dd, yyyy' })
                       return (
@@ -161,13 +171,17 @@ export const AmazonOrdersClient: React.FC<{ orders: Order[] }> = ({ orders }) =>
                               >
                                 Buy it again
                               </Link>
-                              <Link
-                                href={slug ? `/products/${slug}` : '#'}
-                                className="inline-flex items-center justify-center h-8 px-4 rounded-lg border bg-card text-xs font-medium hover:bg-muted"
-                              >
-                                View your item
-                              </Link>
-                              <button className="inline-flex items-center justify-center h-8 px-4 rounded-lg border bg-card text-xs font-medium hover:bg-muted">Write a review</button>
+                               <Dialog>
+                                 <DialogTrigger asChild>
+                                   <button className="inline-flex cursor-pointer items-center justify-center h-8 px-4 rounded-lg border bg-card text-xs font-medium hover:bg-muted">Write a review</button>
+                                 </DialogTrigger>
+                                 <DialogContent className="max-h-[90vh] overflow-y-auto bg-white sm:max-w-lg dark:bg-card">
+                                   <DialogHeader>
+                                     <DialogTitle className="line-clamp-2 text-left text-sm">{title}</DialogTitle>
+                                   </DialogHeader>
+                                   {productId ? <ReviewForm bare productId={productId} /> : null}
+                                 </DialogContent>
+                               </Dialog>
                               <button className="h-8 w-8 inline-flex items-center justify-center rounded-lg border bg-card text-xs">⋯</button>
                             </div>
                           </div>
