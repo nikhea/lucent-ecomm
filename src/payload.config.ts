@@ -24,6 +24,7 @@ import { Notifications } from '@/collections/Notifications'
 import { Pages } from '@/collections/Pages'
 import { Reviews } from '@/collections/Reviews'
 import { CustomerProfiles } from '@/collections/CustomerProfiles'
+import { ReturnRequests } from '@/collections/ReturnRequests'
 import { ShopCollections } from '@/collections/ShopCollections'
 import { Users } from '@/collections/Users'
 import { Wishlist } from '@/collections/Wishlist'
@@ -56,7 +57,7 @@ export default buildConfig({
     },
     user: Users.slug,
   },
-  collections: [Users, CustomerProfiles, Pages, Categories, Media, ShopCollections, Wishlist, Reviews, Notifications, Coupons],
+  collections: [Users, CustomerProfiles, Pages, Categories, Media, ShopCollections, Wishlist, Reviews, ReturnRequests, Notifications, Coupons],
   db: mongooseAdapter({
     url: process.env.DATABASE_URL || '',
     useJoinAggregations: false,

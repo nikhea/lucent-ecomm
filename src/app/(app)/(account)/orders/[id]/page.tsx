@@ -289,6 +289,20 @@ export default async function Order({ params, searchParams }: PageProps) {
               title: (typeof p === 'object' ? p.title : null) || 'Item',
             }
           })}
+          returnOrderId={String(orderNumber)}
+          returnLines={allItems.map((it: any) => {
+            const p = it.product
+            const v = it.variant && typeof it.variant === 'object' ? it.variant : null
+            return {
+              productId: String(typeof p === 'object' ? p.id : p),
+              variantId: v?.id ? String(v.id) : typeof it.variant === 'string' ? it.variant : null,
+              title: (typeof p === 'object' ? p.title : null) || 'Item',
+              variantLabel: v
+                ? v.options?.map((o: any) => (typeof o === 'object' ? o.label : o)).filter(Boolean).join(' · ') || null
+                : null,
+              maxQty: it.quantity || 1,
+            }
+          })}
           className="lg:sticky lg:top-20"
         />
       </div>

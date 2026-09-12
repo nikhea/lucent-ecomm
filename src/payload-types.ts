@@ -80,6 +80,7 @@ export interface Config {
     'shop-collections': ShopCollection;
     wishlists: Wishlist;
     reviews: Review;
+    'return-requests': ReturnRequest;
     notifications: Notification;
     coupons: Coupon;
     forms: Form;
@@ -129,6 +130,7 @@ export interface Config {
     'shop-collections': ShopCollectionsSelect<false> | ShopCollectionsSelect<true>;
     wishlists: WishlistsSelect<false> | WishlistsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'return-requests': ReturnRequestsSelect<false> | ReturnRequestsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     coupons: CouponsSelect<false> | CouponsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -1496,6 +1498,45 @@ export interface Review {
   createdAt: string;
 }
 /**
+ * Customer return requests — review and approve from here
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "return-requests".
+ */
+export interface ReturnRequest {
+  id: string;
+  order: string | Order;
+  /**
+   * Auto-set to logged in user (empty for guest requests)
+   */
+  customer?: (string | null) | User;
+  /**
+   * For guest requests
+   */
+  customerEmail?: string | null;
+  items: {
+    product: string | Product;
+    /**
+     * Variant ID, if any
+     */
+    variant?: string | null;
+    /**
+     * Product snapshot
+     */
+    title: string;
+    quantity: number;
+    id?: string | null;
+  }[];
+  reason: 'wrong-size' | 'defective' | 'wrong-item' | 'changed-mind' | 'late-delivery' | 'other';
+  comments?: string | null;
+  /**
+   * Admin moderation
+   */
+  status?: ('pending' | 'approved' | 'rejected' | 'completed') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * User notifications — use createNotification(req, data) helper
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1657,6 +1698,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'return-requests';
+        value: string | ReturnRequest;
       } | null)
     | ({
         relationTo: 'notifications';
@@ -2251,6 +2296,29 @@ export interface ReviewsSelect<T extends boolean = true> {
   comment?: T;
   status?: T;
   verifiedPurchase?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "return-requests_select".
+ */
+export interface ReturnRequestsSelect<T extends boolean = true> {
+  order?: T;
+  customer?: T;
+  customerEmail?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        variant?: T;
+        title?: T;
+        quantity?: T;
+        id?: T;
+      };
+  reason?: T;
+  comments?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }

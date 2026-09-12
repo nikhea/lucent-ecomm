@@ -1,7 +1,7 @@
 import { Price } from '@/components/Price'
 import { DownloadInvoiceButton } from '@/components/orders/DownloadInvoiceButton'
 import { ReorderButton, type ReorderLine } from '@/components/orders/ReorderButton'
-import { RotateCcw } from 'lucide-react'
+import { ReturnDialog, type ReturnLine } from '@/components/orders/ReturnDialog'
 
 type Address = {
   name: string
@@ -25,7 +25,8 @@ type Props = {
   guestEmail?: string
   guestToken?: string
   reorderItems?: ReorderLine[]
-  onStartReturn?: () => void
+  returnLines?: ReturnLine[]
+  returnOrderId?: string
   className?: string
 }
 
@@ -41,7 +42,8 @@ export const OrderSummaryCard: React.FC<Props> = ({
   guestEmail,
   guestToken,
   reorderItems,
-  onStartReturn,
+  returnLines,
+  returnOrderId,
   className,
 }) => {
   return (
@@ -93,12 +95,9 @@ export const OrderSummaryCard: React.FC<Props> = ({
         {orderId ? (
           <DownloadInvoiceButton orderId={orderId} email={guestEmail} accessToken={guestToken} />
         ) : null}
-        <button
-          onClick={onStartReturn}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border bg-card text-xs font-medium hover:bg-muted"
-        >
-          <RotateCcw className="h-3.5 w-3.5" /> Start a return
-        </button>
+        {returnLines && returnLines.length > 0 && returnOrderId ? (
+          <ReturnDialog orderId={returnOrderId} email={guestEmail} accessToken={guestToken} lines={returnLines} />
+        ) : null}
         {reorderItems && reorderItems.length > 0 ? <ReorderButton items={reorderItems} /> : null}
       </div>
     </div>
