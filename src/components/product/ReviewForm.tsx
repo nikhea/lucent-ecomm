@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/providers/Auth'
 import { cn } from '@/utilities/cn'
-import { Star } from 'lucide-react'
+import { BadgeCheck, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+
+type ExistingReview = { id: string; rating: number; title: string; comment: string; status?: string | null } | null
 
 export function ReviewForm({ productId }: { productId: string }) {
   const { user } = useAuth()
@@ -20,6 +22,36 @@ export function ReviewForm({ productId }: { productId: string }) {
   const [title, setTitle] = useState('')
   const [comment, setComment] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
+  const [purchased, setPurchased] = useState(false)
+  const [existing, setExisting] = useState<ExistingReview>(null)
+
+  const load = useCallback(async () => {
+    setChecking(true)
+    try {
+      const res = await fetch(`/api/review-eligibility?product=${productId}`, { credentials: 'include' })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setPurchased(!!data.purchased)
+      if (data.review) {
+        setExisting(data.review)
+        setRating(data.review.rating || 5)
+        setTitle(data.review.title || '')
+        setComment(data.review.comment || '')
+      } else {
+        setExisting(null)
+      }
+    } catch {
+      setPurchased(false)
+    } finally {
+      setChecking(false)
+    }
+  }, [productId])
+
+  useEffect(() => {
+    if (user) void load()
+    else setChecking(false)
+  }, [user, load])
 
   if (!user) {
     return (
@@ -37,6 +69,27 @@ export function ReviewForm({ productId }: { productId: string }) {
     )
   }
 
+  if (checking) {
+    return (
+      <Card id="write-review">
+        <CardContent className="pt-6">
+          <div className="h-24 animate-pulse rounded-lg bg-muted" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!purchased) {
+    return (
+      <Card id="write-review">
+        <CardHeader>
+          <CardTitle>Write a review</CardTitle>
+          <CardDescription>Only customers who purchased this product can leave a review.</CardDescription>
+        </CardHeader>
+      </Card>
+    )
+  }
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !comment.trim()) {
@@ -45,20 +98,23 @@ export function ReviewForm({ productId }: { productId: string }) {
     }
     setIsLoading(true)
     try {
-      const res = await fetch('/api/reviews', {
-        body: JSON.stringify({ product: productId, rating, title: title.trim(), comment: comment.trim() }),
+      const url = existing ? `/api/reviews/${existing.id}` : '/api/reviews'
+      const method = existing ? 'PATCH' : 'POST'
+      const body = existing
+        ? { title: title.trim(), comment: comment.trim(), rating }
+        : { product: productId, rating, title: title.trim(), comment: comment.trim() }
+      const res = await fetch(url, {
+        body: JSON.stringify(body),
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        method: 'POST',
+        method,
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
         throw new Error(data?.message || data?.errors?.[0]?.message || 'Failed to submit review')
       }
-      toast.success('Review submitted for moderation')
-      setTitle('')
-      setComment('')
-      setRating(5)
+      toast.success(existing ? 'Review updated — pending approval' : 'Review submitted for moderation')
+      await load()
       router.refresh()
     } catch (err: any) {
       toast.error(err.message || 'Failed to submit review')
@@ -70,8 +126,17 @@ export function ReviewForm({ productId }: { productId: string }) {
   return (
     <Card id="write-review">
       <CardHeader>
-        <CardTitle>Write a review</CardTitle>
-        <CardDescription>One review per product. Reviews go live after admin approval.</CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          {existing ? 'Edit your review' : 'Write a review'}
+          {existing?.status === 'approved' && (
+            <span className="inline-flex items-center gap-1 text-xs font-normal text-emerald-700">
+              <BadgeCheck className="h-3.5 w-3.5" /> Live
+            </span>
+          )}
+        </CardTitle>
+        <CardDescription>
+          {existing ? 'One review per product — updating sends it back for approval.' : 'One review per product. Reviews go live after admin approval.'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form className="flex flex-col gap-4" onSubmit={onSubmit}>
@@ -79,7 +144,7 @@ export function ReviewForm({ productId }: { productId: string }) {
             {[1, 2, 3, 4, 5].map((s) => (
               <button
                 aria-label={`Rate ${s} stars`}
-                className="p-1"
+                className="cursor-pointer p-1"
                 key={s}
                 onMouseEnter={() => setHover(s)}
                 onMouseLeave={() => setHover(0)}
@@ -101,8 +166,8 @@ export function ReviewForm({ productId }: { productId: string }) {
             rows={4}
             value={comment}
           />
-          <Button className="w-fit" disabled={isLoading} type="submit">
-            {isLoading ? 'Submitting…' : 'Submit review'}
+          <Button className="w-fit cursor-pointer" disabled={isLoading} type="submit">
+            {isLoading ? 'Submitting…' : existing ? 'Update review' : 'Submit review'}
           </Button>
         </form>
       </CardContent>

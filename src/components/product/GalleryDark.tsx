@@ -25,7 +25,7 @@ export function GalleryDark({ gallery }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-white">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
         {mainImage && typeof mainImage === 'object' && (
           <Media resource={mainImage} className="h-full w-full" imgClassName="h-full w-full object-cover" fill />
         )}
@@ -38,7 +38,7 @@ export function GalleryDark({ gallery }: Props) {
             <button
               key={`${img.id}-${i}`}
               onClick={() => setCurrent(i)}
-              className={cn('relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-white', i === current ? 'border-black ring-2 ring-black' : 'border-transparent opacity-70 hover:opacity-100')}
+              className={cn('relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-muted', i === current ? 'border-foreground ring-2 ring-foreground' : 'border-transparent opacity-70 hover:opacity-100')}
             >
               <Media resource={img} className="h-full w-full" imgClassName="h-full w-full object-cover" />
             </button>

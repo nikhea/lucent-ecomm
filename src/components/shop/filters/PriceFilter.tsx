@@ -35,7 +35,7 @@ export function PriceFilter({ minPrice, maxPrice, onChange, maxLimit = 6450 }: P
       <div className="text-sm font-semibold">Price</div>
       <div className="flex items-end gap-1 h-8">
         {histogram.map((h, i) => (
-          <div key={i} className="flex-1 bg-neutral-200 rounded-sm" style={{ height: `${h}px` }} />
+          <div key={i} className="flex-1 bg-foreground/15 rounded-sm" style={{ height: `${h}px` }} />
         ))}
       </div>
       <Slider value={value} min={0} max={maxLimit} step={10} onValueChange={handleChange} onValueCommit={handleCommit} className="py-2" />

@@ -56,7 +56,7 @@ export function VariantColor({ product }: { product: Product }) {
               key={opt.id}
               onClick={() => router.replace(href, { scroll: false })}
               disabled={!isAvailable}
-              className={cn('h-8 w-8 rounded-full border-2', colorMap[opt.value] || 'bg-muted', active ? 'ring-2 ring-black border-black' : 'border-muted', !isAvailable && 'opacity-50')}
+              className={cn('h-8 w-8 rounded-full border-2', colorMap[opt.value] || 'bg-muted', active ? 'ring-2 ring-foreground border-foreground' : 'border-muted', !isAvailable && 'opacity-50')}
               aria-label={opt.label}
               title={`${opt.label}${!isAvailable ? ' (Out of Stock)' : ''}`}
             />

@@ -49,20 +49,19 @@ export default async function AccountPage() {
 
   return (
     <>
-      <div className="border p-8 rounded-lg bg-primary-foreground">
-        <h1 className="text-3xl font-medium mb-8">Account settings</h1>
+      <div className="border rounded-xl bg-card p-6 sm:p-8 shadow-sm">
+        <h1 className="text-2xl sm:text-3xl font-semibold mb-2">Account settings</h1>
+        <p className="text-sm text-muted-foreground mb-8">Manage your personal details, size profile and preferences.</p>
         <AccountForm />
       </div>
 
-      <div className=" border p-8 rounded-lg bg-primary-foreground">
-        <h2 className="text-3xl font-medium mb-8">Recent Orders</h2>
+      <div className="border rounded-xl bg-card p-6 sm:p-8 shadow-sm">
+        <h2 className="text-2xl sm:text-3xl font-semibold mb-2">Recent Orders</h2>
 
-        <div className="prose dark:prose-invert mb-8">
-          <p>
-            These are the most recent orders you have placed. Each order is associated with an
-            payment. As you place more orders, they will appear in your orders list.
-          </p>
-        </div>
+        <p className="text-sm text-muted-foreground mb-8 max-w-xl">
+          These are the most recent orders you have placed. Each order is associated with an
+          payment. As you place more orders, they will appear in your orders list.
+        </p>
 
         {(!orders || !Array.isArray(orders) || orders?.length === 0) && (
           <div className="mb-8">
@@ -71,7 +70,7 @@ export default async function AccountPage() {
         )}
 
         {orders && orders.length > 0 && (
-          <ul className="flex flex-col gap-6 mb-8">
+          <ul className="flex flex-col gap-4 mb-8">
             {orders?.map((order, index) => (
               <li key={order.id}>
                 <OrderItem order={order} />
@@ -80,7 +79,7 @@ export default async function AccountPage() {
           </ul>
         )}
 
-        <Button asChild variant="default">
+        <Button asChild variant="default" className="cursor-pointer">
           <Link href="/orders">View all orders</Link>
         </Button>
       </div>

@@ -147,7 +147,7 @@ export default async function ProductPage({ params }: Args) {
   return (
     <React.Fragment>
       <script dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} type="application/ld+json" />
-      <div className="bg-white text-foreground min-h-screen">
+      <div className="bg-background text-foreground min-h-screen">
         <div className="container pt-6 pb-12">
           <Breadcrumbs productTitle={product.title} categories={categoriesForBreadcrumb as any} />
 
@@ -200,7 +200,7 @@ export default async function ProductPage({ params }: Args) {
           <Specifications product={product} />
           <ReviewsSection product={product} />
           {relatedProducts.length ? (
-            <RelatedDark products={relatedProducts as Product[]} />
+            <RelatedDark products={relatedProducts as Product[]} currentTitle={product.title} />
           ) : (
             <RelatedDark products={[]} />
           )}
@@ -208,7 +208,7 @@ export default async function ProductPage({ params }: Args) {
       </div>
 
       {product.layout?.length ? (
-        <div className="bg-white text-black">
+        <div className="bg-background text-foreground">
           <RenderBlocks blocks={product.layout} />
         </div>
       ) : null}

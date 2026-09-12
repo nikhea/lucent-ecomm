@@ -26,8 +26,8 @@ export function RatingFilter({ value, onToggle }: Props) {
               key={r.value}
               onClick={() => onToggle(r.value)}
               className={cn(
-                'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left',
-                active ? 'bg-black text-white border-black' : 'bg-white hover:bg-muted',
+                'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors',
+                active ? 'bg-foreground text-background border-foreground' : 'bg-background border-border hover:bg-muted',
               )}
             >
               <span className="flex text-yellow-400">
@@ -35,7 +35,7 @@ export function RatingFilter({ value, onToggle }: Props) {
                   <Star key={i} className={`h-3 w-3 ${i < r.stars ? 'fill-yellow-400' : 'fill-transparent text-muted-foreground'}`} />
                 ))}
               </span>
-              <span className={cn('text-xs', active ? 'text-white' : 'text-muted-foreground')}>{r.label}</span>
+              <span className={cn('text-xs', active ? 'opacity-80' : 'text-muted-foreground')}>{r.label}</span>
             </button>
           )
         })}

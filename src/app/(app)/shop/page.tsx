@@ -18,7 +18,7 @@ type Props = {
 }
 
 export default async function ShopPage({ searchParams }: Props) {
-  const { q: searchValue, sort, categories: categoriesParam, category: legacyCategory, minPrice, maxPrice, page } = await loadShopSearchParams(searchParams)
+  const { q: searchValue, sort, categories: categoriesParam, category: legacyCategory, minPrice, maxPrice, page, sizes: sizesParam } = await loadShopSearchParams(searchParams)
   const limit = 9
 
   const payload = await getPayload({ config: configPromise })
@@ -43,6 +43,27 @@ export default async function ShopPage({ searchParams }: Props) {
   }
   if (typeof minPrice === 'number' && minPrice > 0) whereAnd.push({ priceInUSD: { greater_than_equal: minPrice * 100 } })
   if (typeof maxPrice === 'number' && maxPrice > 0) whereAnd.push({ priceInUSD: { less_than_equal: maxPrice * 100 } })
+
+  const sizeLabels = (sizesParam as string[]).filter(Boolean)
+  if (sizeLabels.length) {
+    const sizeTypeRes = await payload.find({ collection: 'variantTypes', where: { name: { equals: 'size' } }, limit: 1, depth: 2, overrideAccess: true })
+    const sizeOpts = (((sizeTypeRes.docs[0] as any)?.options?.docs || []) as any[]).filter((o) => typeof o === 'object')
+    const matchingOptIds = sizeOpts.filter((o) => sizeLabels.includes(o.label)).map((o) => String(o.id))
+    if (matchingOptIds.length) {
+      const matchingVariants = await payload.find({
+        collection: 'variants',
+        where: { options: { in: matchingOptIds } },
+        limit: 500,
+        depth: 0,
+        select: { product: true },
+        overrideAccess: true,
+      })
+      const productIds = [...new Set(matchingVariants.docs.map((v: any) => String(typeof v.product === 'object' ? v.product.id : v.product)))]
+      whereAnd.push({ id: { in: productIds.length ? productIds : ['000000000000000000000000'] } })
+    } else {
+      whereAnd.push({ id: { in: ['000000000000000000000000'] } })
+    }
+  }
 
   const totalAll = await payload.count({ collection: 'products', where: { _status: { equals: 'published' } }, overrideAccess: true })
 

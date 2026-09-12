@@ -12,7 +12,16 @@ async function ShopFiltersWrapper() {
       return { id: cat.id, title: cat.title, slug: cat.slug, count: res.totalDocs }
     }),
   )
-  return <ShopFilters categories={counts as any} />
+  const sizeTypes = await payload.find({ collection: 'variantTypes', where: { name: { equals: 'size' } }, limit: 1, depth: 2, overrideAccess: true })
+  const sizeType = sizeTypes.docs[0] as any
+  const sizeOptions = ((sizeType?.options?.docs || []) as any[]).filter((o) => typeof o === 'object')
+  const sizes = await Promise.all(
+    sizeOptions.map(async (opt) => {
+      const res = await payload.count({ collection: 'variants', where: { options: { contains: opt.id } }, overrideAccess: true })
+      return { label: opt.label, value: opt.value, count: res.totalDocs }
+    }),
+  )
+  return <ShopFilters categories={counts as any} sizes={sizes} />
 }
 
 export default function ShopLayout({ children }: { children: React.ReactNode }) {

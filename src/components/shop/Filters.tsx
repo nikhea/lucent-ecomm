@@ -3,7 +3,7 @@ import { Search as SearchIcon, Filter, Truck, Zap, Shield, Star } from 'lucide-r
 import React, { useState, useEffect, useTransition } from 'react'
 import { useQueryStates, parseAsString, parseAsArrayOf, parseAsInteger, throttle } from 'nuqs'
 import { PriceFilter } from './filters/PriceFilter'
-import { FrameSizeFilter } from './filters/FrameSizeFilter'
+import { FrameSizeFilter, type SizeOptionWithCount } from './filters/FrameSizeFilter'
 import { RatingFilter } from './filters/RatingFilter'
 
 type CategoryWithCount = { id: string; title: string; slug: string; count: number }
@@ -35,7 +35,7 @@ const shopParsers = {
   page: parseAsInteger.withDefault(1).withOptions({ clearOnDefault: true, shallow: false }),
 }
 
-export function ShopFilters({ categories }: { categories: CategoryWithCount[] }) {
+export function ShopFilters({ categories, sizes }: { categories: CategoryWithCount[]; sizes?: SizeOptionWithCount[] }) {
   const [isPending, startTransition] = useTransition()
   const [filters, setFilters] = useQueryStates(shopParsers, {
     history: 'push',
@@ -110,10 +110,10 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
               <button
                 key={cat.id}
                 onClick={() => toggleArray('categories', cat.slug)}
-                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left ${active ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white' : 'bg-card hover:bg-muted'}`}
+                className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-xs font-medium text-left transition-colors ${active ? 'bg-foreground text-background border-foreground' : 'bg-card border-border hover:bg-muted'}`}
               >
                 <span className="truncate">{cat.title}</span>
-                <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] ${active ? 'bg-white text-black dark:bg-black dark:text-white' : 'bg-muted'}`}>{cat.count}</span>
+                <span className={`ml-2 px-1.5 py-0.5 rounded text-[10px] ${active ? 'bg-background text-foreground' : 'bg-muted'}`}>{cat.count}</span>
               </button>
             )
           })}
@@ -130,7 +130,7 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
 
       <hr />
 
-      <FrameSizeFilter value={filters.sizes} onToggle={(s) => toggleArray('sizes', s)} />
+      <FrameSizeFilter value={filters.sizes} onToggle={(s) => toggleArray('sizes', s)} sizes={sizes} />
 
       <hr />
 
@@ -147,10 +147,10 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
               <button
                 key={b.name}
                 onClick={() => toggleArray('brands', b.name)}
-                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm ${active ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white' : 'bg-card hover:bg-muted'}`}
+                className={`flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors ${active ? 'bg-foreground text-background border-foreground' : 'bg-card border-border hover:bg-muted'}`}
               >
                 <span>{b.name}</span>
-                <span className={`px-2 py-0.5 rounded text-xs ${active ? 'bg-white text-black dark:bg-black dark:text-white' : 'bg-muted'}`}>{b.count}</span>
+                <span className={`px-2 py-0.5 rounded text-xs ${active ? 'bg-background text-foreground' : 'bg-muted'}`}>{b.count}</span>
               </button>
             )
           })}
@@ -169,7 +169,7 @@ export function ShopFilters({ categories }: { categories: CategoryWithCount[] })
               <button
                 key={f.key}
                 onClick={() => toggleArray('features', f.key)}
-                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left ${active ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white' : 'bg-card hover:bg-muted'}`}
+                className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm text-left transition-colors ${active ? 'bg-foreground text-background border-foreground' : 'bg-card border-border hover:bg-muted'}`}
               >
                 <Icon className="h-4 w-4" />
                 {f.label}

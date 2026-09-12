@@ -12,7 +12,7 @@ import React, { Suspense } from 'react'
 import { MobileMenu } from './MobileMenu'
 import type { Header, Category, ShopCollection, Product } from 'src/payload-types'
 
-import { Heart, ShoppingBag } from 'lucide-react'
+import { Heart, ShoppingBag, User } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/providers/Auth'
 import { Button } from '@/components/ui/button'
@@ -89,15 +89,11 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
           <Suspense fallback={<OpenCartButton />}>
             <CartDrawer />
           </Suspense>
-          {user ? (
-            <Link href="/account" className="hidden sm:inline-flex rounded-lg border px-4 py-2 text-sm font-medium">
-              Account
+          <Button aria-label={user ? 'Account' : 'Sign in'} asChild size="icon" variant="ghost" className="relative">
+            <Link href={user ? '/account' : '/login'}>
+              <User data-icon="inline-start" />
             </Link>
-          ) : (
-            <Link href="/login" className="rounded-lg border px-4 py-2 text-sm font-medium">
-              Sign In
-            </Link>
-          )}
+          </Button>
         </div>
       </nav>
       <div className="md:hidden px-4 pb-3">

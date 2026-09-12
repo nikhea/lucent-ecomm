@@ -45,8 +45,15 @@ export const Reviews: CollectionConfig = {
       ({ data, req, operation }) => {
         if (operation === 'create' && req.user && !data?.customer) data.customer = req.user.id
         if (operation === 'update' && req.user && !isAdmin(req.user)) {
-          if (data?.status) delete data.status
           if (typeof data?.verifiedPurchase !== 'undefined') delete data.verifiedPurchase
+          if (data?.title || data?.comment || typeof data?.rating !== 'undefined') data.status = 'pending'
+          else if (data?.status) delete data.status
+        }
+        return data
+      },
+      async ({ data, req, operation }) => {
+        if (operation === 'create' && req.user && !isAdmin(req.user) && data?.verifiedPurchase !== true) {
+          throw new APIError('Only customers who purchased this product can review it', 403)
         }
         return data
       },
