@@ -39,8 +39,9 @@ export function ShopProductCard({ product, badge = 'none', badgeLabel }: Props) 
   const [selectedSize, setSelectedSize] = useState<string | null>(null)
   const { addItem, isLoading } = useCart()
 
+  const hasSelectableVariants = hasVariants && variants.length > 0 && sizes.length > 0
   const selectedVariant = useMemo(() => {
-    if (!hasVariants || !sizes.length) return undefined
+    if (!hasSelectableVariants) return undefined
     if (!selectedSize) return undefined
     const sizeOpt = sizes.find((s) => s.label === selectedSize || s.value === selectedSize.toLowerCase() || String(s.id) === selectedSize)
     if (!sizeOpt) return undefined
@@ -49,23 +50,25 @@ export function ShopProductCard({ product, badge = 'none', badgeLabel }: Props) 
         const oid = String(typeof o === 'object' ? o.id : o)
         const label = typeof o === 'object' ? (o as any).label : ''
         const value = typeof o === 'object' ? (o as any).value : ''
-        return oid === String(sizeOpt.id) || label === sizeOpt.label || (value && value.toLowerCase() === sizeOpt.value.toLowerCase())
+        return oid === String(sizeOpt.id) || label === sizeOpt.label || (value && value.toLowerCase() === String(sizeOpt.value).toLowerCase())
       }),
     )
-    if (!candidates.length) {
-      if (variants.length && hasVariants) {
-        return variants.find((v: any) => (v.inventory ?? 0) > 0) || variants[0]
-      }
-      return undefined
-    }
+    if (!candidates.length) return undefined
     return candidates.find((v: any) => (v.inventory ?? 0) > 0) || candidates[0]
-  }, [hasVariants, selectedSize, sizes, variants])
+  }, [hasSelectableVariants, selectedSize, sizes, variants])
+
+  const isSelectedOutOfStock = !!selectedVariant && (selectedVariant as any).inventory != null && (selectedVariant as any).inventory <= 0
+  const needsSize = !!hasSelectableVariants && !selectedSize
 
   const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    if (hasVariants && !selectedVariant) {
+    if (needsSize) {
       toast.error('Please select a size')
+      return
+    }
+    if (isSelectedOutOfStock) {
+      toast.error('Selected size is out of stock')
       return
     }
     try {
@@ -114,10 +117,10 @@ export function ShopProductCard({ product, badge = 'none', badgeLabel }: Props) 
             </div>
             <button
               onClick={handleAdd}
-              disabled={!!(hasVariants && !selectedVariant) || !!isLoading || (hasVariants && selectedVariant && (selectedVariant as any).inventory !== null && (selectedVariant as any).inventory <= 0)}
+              disabled={!!isLoading || needsSize || isSelectedOutOfStock}
               className="w-full bg-white text-black hover:bg-white/90 text-xs h-8 rounded-lg flex items-center justify-center gap-1 font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer not-disabled:cursor-pointer"
             >
-              <ShoppingBag className="h-3.5 w-3.5" /> {hasVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
+              <ShoppingBag className="h-3.5 w-3.5" /> {hasSelectableVariants ? (selectedSize ? 'Add to Bag' : 'Select Size') : 'Add to Bag'}
             </button>
           </div>
         )}

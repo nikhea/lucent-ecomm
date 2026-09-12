@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { Access, CollectionConfig, Where } from 'payload'
 
 import { APIError } from 'payload'
 
@@ -15,10 +15,13 @@ export const Reviews: CollectionConfig = {
     description: 'Customer reviews — one per customer per product, auto-verifies purchase',
   },
   access: {
-    read: ({ req: { user } }) => {
+    read: (({ req: { user } }) => {
       if (isAdmin(user)) return true
-      return { status: { equals: 'approved' } } as const
-    },
+      if (!user) return { status: { equals: 'approved' } } as Where
+      return {
+        or: [{ status: { equals: 'approved' } }, { customer: { equals: user.id } }],
+      } as Where
+    }) as Access,
     create: ({ req: { user } }) => !!user,
     update: ({ req: { user } }) => {
       if (!user) return false

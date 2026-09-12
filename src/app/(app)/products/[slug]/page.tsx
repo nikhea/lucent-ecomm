@@ -114,12 +114,24 @@ export default async function ProductPage({ params }: Args) {
     },
   }
 
+  const payload = await getPayload({ config: configPromise })
+
+  const reviewsAgg = await payload.find({
+    collection: 'reviews',
+    where: { and: [{ product: { equals: product.id } }, { status: { equals: 'approved' } }] },
+    depth: 0,
+    limit: 100,
+    overrideAccess: true,
+  })
+  const reviewCount = reviewsAgg.totalDocs
+  const reviewAvg = reviewsAgg.docs.length
+    ? reviewsAgg.docs.reduce((s: number, r: any) => s + (r.rating || 0), 0) / reviewsAgg.docs.length
+    : 0
+
   let relatedProducts = product.relatedProducts?.filter((relatedProduct) => typeof relatedProduct === 'object') ?? []
 
   if (!relatedProducts.length) {
-    const fallback = await getPayload({ config: configPromise }).then((p) =>
-      p.find({ collection: 'products', where: { and: [{ id: { not_equals: product.id } }, { _status: { equals: 'published' } }] }, limit: 4, depth: 1, overrideAccess: true }),
-    )
+    const fallback = await payload.find({ collection: 'products', where: { and: [{ id: { not_equals: product.id } }, { _status: { equals: 'published' } }] }, limit: 4, depth: 1, overrideAccess: true })
     relatedProducts = fallback.docs as any[]
   }
 
@@ -157,11 +169,17 @@ export default async function ProductPage({ params }: Args) {
                 <span className="text-muted-foreground">By {brand}</span>
                 <span className="flex text-yellow-400">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className={`h-3.5 w-3.5 ${i < 4 ? 'fill-yellow-400' : 'fill-muted'}`} />
+                    <Star key={i} className={`h-3.5 w-3.5 ${i < Math.round(reviewAvg) ? 'fill-yellow-400' : 'fill-muted'}`} />
                   ))}
                 </span>
-                <span className="text-foreground">4.7</span>
-                <span className="text-muted-foreground">(412 reviews)</span>
+                {reviewCount > 0 ? (
+                  <>
+                    <span className="text-foreground">{reviewAvg.toFixed(1)}</span>
+                    <a className="text-muted-foreground hover:underline" href="#reviews">({reviewCount} reviews)</a>
+                  </>
+                ) : (
+                  <a className="text-muted-foreground hover:underline" href="#reviews">No reviews yet</a>
+                )}
               </div>
 
               <p className="text-sm text-muted-foreground leading-relaxed">{shortDesc}</p>

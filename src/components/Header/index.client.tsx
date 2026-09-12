@@ -1,5 +1,5 @@
 'use client'
-import { Cart } from '@/components/Cart'
+import { CartDrawer } from '@/components/Cart/CartDrawer'
 import { OpenCartButton } from '@/components/Cart/OpenCart'
 import { Search } from '@/components/Search'
 import { Dropdown } from '@/components/Navbar/Dropdown'
@@ -12,11 +12,9 @@ import React, { Suspense } from 'react'
 import { MobileMenu } from './MobileMenu'
 import type { Header, Category, ShopCollection, Product } from 'src/payload-types'
 
-import { LogoIcon } from '@/components/icons/logo'
-import { ShoppingBag, ShoppingCart } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/providers/Auth'
-import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
 
 type Props = {
   header: Header
@@ -86,12 +84,7 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
         <div className="flex items-center gap-3 shrink-0">
           <ThemeToggle />
           <Suspense fallback={<OpenCartButton />}>
-            <div className="relative flex items-center gap-2">
-              <Link href="/cart" className="relative p-2">
-                <ShoppingCart className="h-5 w-5" />
-                <CartCount />
-              </Link>
-            </div>
+            <CartDrawer />
           </Suspense>
           {user ? (
             <Link href="/account" className="hidden sm:inline-flex rounded-lg border px-4 py-2 text-sm font-medium">
@@ -108,19 +101,5 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
         <Search />
       </div>
     </div>
-  )
-}
-
-function CartCount() {
-  const { cart } = useCart()
-  const count = React.useMemo(() => {
-    if (!cart?.items?.length) return 0
-    return cart.items.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0)
-  }, [cart])
-  if (!count) return null
-  return (
-    <span suppressHydrationWarning className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white">
-      {count > 9 ? '9+' : count}
-    </span>
   )
 }
