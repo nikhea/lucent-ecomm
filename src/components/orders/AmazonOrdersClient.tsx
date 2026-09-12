@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Media } from '@/components/Media'
 import { Price } from '@/components/Price'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { EmptyState } from '@/components/EmptyState'
 import { formatDateTime } from '@/utilities/formatDateTime'
 import type { Order } from '@/payload-types'
 
@@ -79,9 +80,12 @@ export const AmazonOrdersClient: React.FC<{ orders: Order[] }> = ({ orders }) =>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="mt-8 rounded-xl border bg-card p-12 text-center">
-          <p className="text-sm text-muted-foreground">No orders found.</p>
-          {tab === 'cancelled' && <p className="text-xs text-muted-foreground mt-1">You have no cancelled orders.</p>}
+        <div className="mt-8 flex min-h-[50vh] flex-col justify-center">
+          <EmptyState
+            preset="orders"
+            title={tab === 'cancelled' ? 'No cancelled orders' : 'No orders found'}
+            description={tab === 'cancelled' ? 'You have no cancelled orders.' : undefined}
+          />
         </div>
       ) : (
         <div className="mt-6 flex flex-col gap-4">

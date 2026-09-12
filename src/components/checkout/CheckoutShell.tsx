@@ -1,12 +1,11 @@
 'use client'
 import { Price } from '@/components/Price'
-import { Button } from '@/components/ui/button'
 import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
 import { useCheckout } from './CheckoutContext'
 import { CheckoutStepper } from './CheckoutStepper'
 import { OrderSummary } from './OrderSummary'
-import { CreditCard, Package } from 'lucide-react'
-import Link from 'next/link'
+import { CreditCard } from 'lucide-react'
+import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { usePathname } from 'next/navigation'
 
@@ -33,15 +32,8 @@ export const CheckoutShell: React.FC<{ children: React.ReactNode }> = ({ childre
 
   if (cartIsEmpty) {
     return (
-      <div className="container py-16 flex flex-col items-center text-center gap-4">
-        <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center">
-          <Package className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h2 className="text-2xl font-bold">Your cart is empty</h2>
-        <p className="text-sm text-muted-foreground">Add something to your cart before checking out.</p>
-        <Button asChild className="bg-black text-white hover:bg-black/90 mt-2">
-          <Link href="/search">Continue shopping</Link>
-        </Button>
+      <div className="container flex min-h-[60vh] flex-col justify-center py-16">
+        <EmptyState preset="cart" description="Add something to your cart before checking out." />
       </div>
     )
   }

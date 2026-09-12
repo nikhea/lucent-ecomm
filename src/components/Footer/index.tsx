@@ -10,7 +10,8 @@ import { Newsletter } from './Newsletter'
 export async function Footer() {
   const footer: Footer = await getCachedGlobal('footer', 1)()
 
-  const brandName = (footer as any).brandName || 'EcommerceKit'
+  const rawBrand = (footer as any).brandName || 'LUCENT'
+  const brandName = typeof rawBrand === 'string' ? rawBrand.replaceAll('EcommerceKit', 'LUCENT') : rawBrand
   const description = (footer as any).description || 'Discover premium products with exceptional quality and modern design. Your satisfaction is our priority.'
   const newsletter = (footer as any).newsletter || { title: 'Subscribe to our newsletter', placeholder: 'Enter your email', buttonLabel: 'Subscribe' }
   const quickLinksTitle = (footer as any).quickLinksTitle || 'Quick Links'
@@ -31,7 +32,8 @@ export async function Footer() {
     { id: '2', platform: 'twitter', url: '#' },
     { id: '3', platform: 'instagram', url: '#' },
   ]
-  const copyright = (footer as any).copyright || `© ${new Date().getFullYear()} EcommerceKit. All rights reserved.`
+  const rawCopyright = (footer as any).copyright || `© ${new Date().getFullYear()} LUCENT. All rights reserved.`
+  const copyright = typeof rawCopyright === 'string' ? rawCopyright.replaceAll('EcommerceKit', 'LUCENT') : rawCopyright
 
   const iconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook className="h-5 w-5" />,

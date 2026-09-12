@@ -14,6 +14,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React, { Suspense, useCallback, useEffect, useState } from 'react'
 
+import { EmptyState } from '@/components/EmptyState'
+import { Badge } from '@/components/ui/badge'
+import { getCartItemName, getCartItemStock } from '@/utilities/stock'
 import { cssVariables } from '@/cssVariables'
 import { CheckoutForm } from '@/components/forms/CheckoutForm'
 import { useAddresses, useCart, usePayments } from '@payloadcms/plugin-ecommerce/client/react'
@@ -47,10 +50,11 @@ export const CheckoutPage: React.FC = () => {
   const [isProcessingPayment, setProcessingPayment] = useState(false)
 
   const cartIsEmpty = !cart || !cart.items || !cart.items.length
+  const outOfStockNames = (cart?.items || []).filter((it: any) => getCartItemStock(it).outOfStock).map((it: any) => getCartItemName(it))
 
-  const canGoToPayment = Boolean(
-    (email || user) && billingAddress && (billingAddressSameAsShipping || shippingAddress),
-  )
+  const canGoToPayment =
+    Boolean((email || user) && billingAddress && (billingAddressSameAsShipping || shippingAddress)) &&
+    outOfStockNames.length === 0
 
   useEffect(() => {
     if (!shippingAddress) {
@@ -92,14 +96,17 @@ export const CheckoutPage: React.FC = () => {
         let errorMessage = 'An error occurred while initiating payment.'
 
         if (errorData?.cause?.code === 'OutOfStock') {
-          errorMessage = 'One or more items in your cart are out of stock.'
+          const names = (cart?.items || []).filter((it: any) => getCartItemStock(it).outOfStock).map((it: any) => getCartItemName(it))
+          errorMessage = names.length
+            ? `Out of stock: ${names.join(', ')}. Remove them to continue.`
+            : 'One or more items in your cart are out of stock.'
         }
 
         setError(errorMessage)
         toast.error(errorMessage)
       }
     },
-    [billingAddress, billingAddressSameAsShipping, shippingAddress],
+    [billingAddress, billingAddressSameAsShipping, shippingAddress, cart],
   )
 
   if (!stripe) return null
@@ -118,15 +125,8 @@ export const CheckoutPage: React.FC = () => {
 
   if (cartIsEmpty) {
     return (
-      <div className="container py-16 flex flex-col items-center text-center gap-4">
-        <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center">
-          <Package className="h-8 w-8 text-muted-foreground" />
-        </div>
-        <h2 className="text-2xl font-bold">Your cart is empty</h2>
-        <p className="text-sm text-muted-foreground">Add something to your cart before checking out.</p>
-        <Button asChild className="bg-black text-white hover:bg-black/90 mt-2">
-          <Link href="/search">Continue shopping</Link>
-        </Button>
+      <div className="container flex min-h-[60vh] flex-col justify-center py-16">
+        <EmptyState preset="cart" description="Add something to your cart before checking out." />
       </div>
     )
   }
@@ -310,16 +310,23 @@ export const CheckoutPage: React.FC = () => {
               )}
 
               {!paymentData && (
-                <Button
-                  className="bg-black text-white hover:bg-black/90 h-11 rounded-full w-full"
-                  disabled={!canGoToPayment}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    void initiatePaymentIntent('stripe')
-                  }}
-                >
-                  <Lock className="h-4 w-4" /> Continue to payment
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    className="bg-black text-white hover:bg-black/90 h-11 rounded-full w-full cursor-pointer disabled:cursor-not-allowed"
+                    disabled={!canGoToPayment}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      void initiatePaymentIntent('stripe')
+                    }}
+                  >
+                    <Lock className="h-4 w-4" /> Continue to payment
+                  </Button>
+                  {outOfStockNames.length > 0 && (
+                    <p className="text-xs text-destructive">
+                      Out of stock: {outOfStockNames.join(', ')}. Remove {outOfStockNames.length === 1 ? 'it' : 'them'} from your cart to continue.
+                    </p>
+                  )}
+                </div>
               )}
 
               {!paymentData?.['clientSecret'] && error && (
@@ -398,6 +405,7 @@ export const CheckoutPage: React.FC = () => {
                 if (typeof item.product === 'object' && item.product) {
                   const { product, quantity, variant } = item
                   if (!quantity) return null
+                  const { outOfStock } = getCartItemStock(item)
                   let image = (product as any).gallery?.[0]?.image || (product as any).meta?.image
                   let price = (product as any)?.priceInUSD
                   const isVariant = Boolean(variant) && typeof variant === 'object'
@@ -417,15 +425,16 @@ export const CheckoutPage: React.FC = () => {
                   return (
                     <div className="flex gap-3" key={index}>
                       <div className="h-16 w-16 shrink-0 rounded-lg bg-muted overflow-hidden border relative">
-                        {image && typeof image !== 'string' && <Media className="h-full w-full" imgClassName="h-full w-full object-cover" resource={image} />}
+                        {image && typeof image !== 'string' && <Media className="h-full w-full" imgClassName={`h-full w-full object-cover ${outOfStock ? 'opacity-40 grayscale blur-[1px]' : ''}`} resource={image} />}
                         <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-black text-white text-[11px] flex items-center justify-center font-medium">{quantity}</span>
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className={`flex-1 min-w-0 ${outOfStock ? 'opacity-70' : ''}`}>
                         <p className="text-sm font-medium leading-tight truncate">{(product as any).title}</p>
                         {variant && typeof variant === 'object' && (
                           <p className="text-xs font-mono text-muted-foreground truncate">{(variant as any).options?.map((o: any) => (typeof o === 'object' ? o.label : null)).join(' • ')}</p>
                         )}
                         <p className="text-xs text-muted-foreground mt-0.5">Qty {quantity}</p>
+                        {outOfStock && <Badge variant="destructive" className="mt-1">Out of stock</Badge>}
                       </div>
                       {typeof price === 'number' && <Price amount={price * quantity} as="span" className="text-sm font-semibold shrink-0" />}
                     </div>

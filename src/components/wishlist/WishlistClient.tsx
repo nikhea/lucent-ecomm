@@ -6,19 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Separator } from '@/components/ui/separator'
 import { useAuth } from '@/providers/Auth'
+import { useWishlistStore, type WishlistDoc } from '@/store/wishlist'
 import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
+import { EmptyState } from '@/components/EmptyState'
 import { ArrowRight, Bell, Share2, ShoppingBag, X } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
-
-type WishlistDoc = {
-  id: string
-  product: any
-  variant?: any
-  createdAt: string
-}
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
@@ -33,37 +28,23 @@ function timeAgo(iso: string) {
 export function WishlistClient() {
   const { user, status } = useAuth()
   const { addItem } = useCart()
-  const [docs, setDocs] = useState<WishlistDoc[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { docs, isLoading, fetched, fetch, remove } = useWishlistStore()
   const [selected, setSelected] = useState<string[]>([])
   const [addingId, setAddingId] = useState<string | null>(null)
 
-  const fetchList = useCallback(async () => {
-    try {
-      const res = await fetch('/api/wishlists?depth=2&limit=100&sort=-createdAt', { credentials: 'include' })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
-      setDocs(data.docs || [])
-      setSelected((prev) => prev.filter((id) => (data.docs || []).some((d: any) => d.id === id)))
-    } catch {
-      setDocs([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  useEffect(() => {
+    if (user && !fetched && !isLoading) fetch()
+  }, [user, fetched, isLoading, fetch])
 
   useEffect(() => {
-    if (status === 'loggedOut') {
-      setIsLoading(false)
-      return
-    }
-    if (user) fetchList()
-  }, [user, status, fetchList])
+    setSelected((prev) => prev.filter((id) => docs.some((d) => d.id === id)))
+  }, [docs])
 
   type Row = {
     doc: WishlistDoc
     product: any
     variant: any
+    variantId: string | null
     price: number
     compare: number | null
     saving: number
@@ -80,11 +61,23 @@ export function WishlistClient() {
     for (const doc of docs) {
       const product = typeof doc.product === 'object' ? doc.product : null
       if (!product) continue
-      const variant = doc.variant && typeof doc.variant === 'object' ? doc.variant : null
+      const variant = doc.variant ? (typeof doc.variant === 'object' ? doc.variant : { id: doc.variant }) : null
+      const variantId = variant?.id ? String(variant.id) : null
       const price = variant?.priceInUSD ?? product.priceInUSD ?? 0
       const compare = variant?.compareAtPriceInUSD ?? product.compareAtPriceInUSD ?? null
       const saving = compare && compare > price ? compare - price : 0
-      const inventory = variant?.inventory ?? product.inventory ?? null
+      const inventory = variantId
+        ? typeof variant?.inventory === 'number'
+          ? variant.inventory
+          : null
+        : product.enableVariants
+          ? (() => {
+              const variants = (product.variants?.docs || []).filter((v: any) => typeof v === 'object')
+              if (!variants.length) return null
+              const anyInStock = variants.some((v: any) => (v.inventory ?? 0) > 0)
+              return anyInStock ? 1 : 0
+            })()
+          : (product.inventory ?? null)
       const outOfStock = inventory !== null && inventory <= 0
       const lowStock = !outOfStock && inventory !== null && inventory <= 5
       const brand =
@@ -99,7 +92,7 @@ export function WishlistClient() {
       const image =
         (typeof product.gallery?.[0]?.image === 'object' ? product.gallery[0].image : undefined) ||
         (typeof product.meta?.image === 'object' ? product.meta.image : undefined)
-      out.push({ doc, product, variant, price, compare, saving, inventory, outOfStock, lowStock, brand, variantLabel, image })
+      out.push({ doc, product, variant, variantId, price, compare, saving, inventory, outOfStock, lowStock, brand, variantLabel, image })
     }
     return out
   }, [docs])
@@ -116,38 +109,59 @@ export function WishlistClient() {
   const toggle = (id: string) => setSelected((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
   const toggleAll = () => setSelected((p) => (p.length === rows.length ? [] : rows.map((r) => r.doc.id)))
 
-  const remove = async (id: string) => {
-    try {
-      const res = await fetch(`/api/wishlists/${id}`, { credentials: 'include', method: 'DELETE' })
-      if (!res.ok) throw new Error()
-      setDocs((p) => p.filter((d) => d.id !== id))
-      setSelected((p) => p.filter((x) => x !== id))
-    } catch {
-      toast.error('Failed to remove item')
-    }
+  const handleRemove = async (id: string) => {
+    await remove(id)
+    setSelected((p) => p.filter((x) => x !== id))
   }
 
-  const addOne = async (row: { product: any; variant: any; doc: WishlistDoc }) => {
+  const resolveVariantId = (row: { product: any; variantId: string | null }) => {
+    if (row.variantId) return row.variantId
+    const variants = (row.product.variants?.docs || []).filter((v: any) => typeof v === 'object')
+    if (row.product.enableVariants && variants.length) {
+      const inStock = variants.find((v: any) => (v.inventory ?? 0) > 0) || variants[0]
+      return inStock?.id ? String(inStock.id) : null
+    }
+    return null
+  }
+
+  const addOne = async (row: { product: any; variant: any; variantId: string | null; doc: WishlistDoc }) => {
     setAddingId(row.doc.id)
     try {
-      await addItem({ product: row.product.id, variant: row.variant?.id, quantity: 1 } as any)
+      const productId = String(typeof row.product === 'object' ? row.product.id : row.product)
+      let variantId = resolveVariantId(row)
+      if (row.product.enableVariants && !variantId) {
+        toast.error('Select a size on the product page first')
+        return
+      }
+      await addItem({ product: productId, ...(variantId ? { variant: variantId } : {}), quantity: 1 } as any)
       toast.success('Added to bag')
-    } catch {
-      toast.error('Failed to add to bag')
+    } catch (e: any) {
+      toast.error(e?.message || 'Failed to add to bag')
     } finally {
       setAddingId(null)
     }
   }
 
   const addSelected = async () => {
+    let added = 0
+    let needsOptions = 0
     for (const id of inStockSelected) {
       const row = rows.find((r) => r.doc.id === id)
       if (!row) continue
       try {
-        await addItem({ product: row.product.id, variant: row.variant?.id, quantity: 1 } as any)
+        const productId = String(typeof row.product === 'object' ? row.product.id : row.product)
+        const variantId = resolveVariantId(row)
+        if (row.product.enableVariants && !variantId) {
+          needsOptions += 1
+          continue
+        }
+        await addItem({ product: productId, ...(variantId ? { variant: variantId } : {}), quantity: 1 } as any)
+        added += 1
       } catch {}
     }
-    toast.success(`Added ${inStockSelected.length} to bag`)
+    if (added) toast.success(`Added ${added} to bag`)
+    if (needsOptions) toast.error(`${needsOptions} item(s) need a size — view product to select`)
+    if (!added && !needsOptions) toast.error('Failed to add to bag')
   }
 
   const share = async () => {
@@ -163,25 +177,26 @@ export function WishlistClient() {
 
   if (status === 'loggedOut' || !user)
     return (
-      <div className="container py-16 text-center">
-        <h1 className="text-2xl font-bold">Saved For Later</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Sign in to view your wishlist.</p>
-        <Button asChild className="mt-6"><Link href="/login">Sign In</Link></Button>
+      <div className="container flex min-h-[60vh] flex-col justify-center py-16">
+        <EmptyState
+          preset="wishlist"
+          title="Sign in to view your wishlist"
+          description="Save items with the heart icon and find them here."
+          actionLabel="Sign In"
+          actionHref="/login"
+        />
       </div>
     )
 
   if (!rows.length)
     return (
-      <div className="container py-16 text-center">
-        <p className="text-xs tracking-widest text-muted-foreground">Shop &gt; Wishlist</p>
-        <h1 className="mt-2 text-2xl font-bold">Saved For Later</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Your wishlist is empty.</p>
-        <Button asChild className="mt-6"><Link href="/shop">Continue Shopping <ArrowRight data-icon="inline-end" /></Link></Button>
+      <div className="container flex min-h-[60vh] flex-col justify-center py-16">
+        <EmptyState preset="wishlist" />
       </div>
     )
 
   return (
-    <div className="container py-8">
+    <div className="container min-h-[60vh] py-8">
       <p className="text-xs text-muted-foreground"><Link className="hover:underline" href="/shop">Shop</Link> <span className="mx-1">›</span> Wishlist</p>
       <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -204,8 +219,8 @@ export function WishlistClient() {
           <span className="font-medium">{rows.length} items</span>
         </label>
         <div className="flex items-center gap-2">
-          <Button onClick={share} size="sm" variant="outline"><Share2 data-icon="inline-start" /> Share List</Button>
-          <Button disabled={!inStockSelected.length} onClick={addSelected} size="sm"><ShoppingBag data-icon="inline-start" /> Add {inStockSelected.length || ''} To Cart</Button>
+          <Button className="cursor-pointer" onClick={share} size="sm" variant="outline"><Share2 data-icon="inline-start" /> Share List</Button>
+          <Button className="cursor-pointer disabled:pointer-events-auto disabled:cursor-not-allowed" disabled={!inStockSelected.length} onClick={addSelected} size="sm"><ShoppingBag data-icon="inline-start" /> Add {inStockSelected.length || ''} To Cart</Button>
         </div>
       </div>
 
@@ -241,13 +256,13 @@ export function WishlistClient() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     {row.outOfStock ? (
-                      <Button disabled size="sm" variant="outline"><Bell data-icon="inline-start" /> Notify Me</Button>
+                      <Button className="cursor-pointer disabled:pointer-events-auto disabled:cursor-not-allowed" disabled size="sm" variant="outline"><Bell data-icon="inline-start" /> Notify Me</Button>
                     ) : (
-                      <Button disabled={addingId === row.doc.id} onClick={() => addOne(row)} size="sm" variant="outline">
+                      <Button className="cursor-pointer disabled:pointer-events-auto disabled:cursor-not-allowed" disabled={addingId === row.doc.id} onClick={() => addOne(row)} size="sm" variant="outline">
                         <ShoppingBag data-icon="inline-start" /> {addingId === row.doc.id ? 'Adding…' : 'Add to Cart'}
                       </Button>
                     )}
-                    <Button aria-label="Remove" onClick={() => remove(row.doc.id)} size="icon" variant="ghost"><X data-icon="inline-start" /></Button>
+                    <Button aria-label="Remove" onClick={() => handleRemove(row.doc.id)} size="icon" variant="ghost"><X data-icon="inline-start" /></Button>
                   </div>
                 </div>
               </div>

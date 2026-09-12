@@ -12,9 +12,11 @@ import React, { Suspense } from 'react'
 import { MobileMenu } from './MobileMenu'
 import type { Header, Category, ShopCollection, Product } from 'src/payload-types'
 
-import { ShoppingBag } from 'lucide-react'
+import { Heart, ShoppingBag } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { useAuth } from '@/providers/Auth'
+import { Button } from '@/components/ui/button'
+import { useWishlist } from '@/store/wishlist'
 
 type Props = {
   header: Header
@@ -36,7 +38,7 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black">
               <ShoppingBag className="h-4 w-4" />
             </span>
-            <span className="text-sm font-semibold hidden sm:block">EcommerceKit</span>
+            <span className="text-sm font-semibold hidden sm:block">LUCENT</span>
           </Link>
 
           <div className="hidden lg:flex items-center gap-6">
@@ -83,6 +85,7 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
 
         <div className="flex items-center gap-3 shrink-0">
           <ThemeToggle />
+          <WishlistButton />
           <Suspense fallback={<OpenCartButton />}>
             <CartDrawer />
           </Suspense>
@@ -101,5 +104,24 @@ export function HeaderClient({ header, categories, collections, newArrivalProduc
         <Search />
       </div>
     </div>
+  )
+}
+
+function WishlistButton() {
+  const { docs } = useWishlist()
+  return (
+    <Button aria-label="Open wishlist" asChild size="icon" variant="ghost" className="relative">
+      <Link href="/wishlist">
+        <Heart data-icon="inline-start" />
+        {docs.length > 0 && (
+          <span
+            suppressHydrationWarning
+            className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-green-600 text-[10px] font-bold text-white"
+          >
+            {docs.length > 9 ? '9+' : docs.length}
+          </span>
+        )}
+      </Link>
+    </Button>
   )
 }

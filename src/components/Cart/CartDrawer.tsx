@@ -1,7 +1,10 @@
 'use client'
 
+import { EmptyState } from '@/components/EmptyState'
+import { Badge } from '@/components/ui/badge'
 import { Price } from '@/components/Price'
 import { Button } from '@/components/ui/button'
+import { getCartItemStock } from '@/utilities/stock'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -31,6 +34,7 @@ export function CartDrawer() {
   }, [pathname])
 
   const items = cart?.items || []
+  const outOfStockCount = useMemo(() => items.filter((it: any) => getCartItemStock(it).outOfStock).length, [items])
   const itemCount = useMemo(
     () => items.reduce((sum: number, it: any) => sum + (it.quantity || 0), 0),
     [items],
@@ -69,12 +73,8 @@ export function CartDrawer() {
         </SheetHeader>
 
         {items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4">
-            <ShoppingCart data-icon="inline-start" className="text-muted-foreground" />
-            <p className="text-sm font-medium">Your cart is empty.</p>
-            <Button asChild onClick={() => setIsOpen(false)} variant="outline">
-              <Link href="/shop">Continue Shopping</Link>
-            </Button>
+          <div className="flex-1 px-4 py-6">
+            <EmptyState preset="cart" onAction={() => setIsOpen(false)} />
           </div>
         ) : (
           <>
@@ -100,13 +100,14 @@ export function CartDrawer() {
                       : undefined) ||
                     (typeof product.meta?.image === 'object' ? product.meta?.image : undefined)
 
+                  const { outOfStock } = getCartItemStock(item)
                   return (
                     <li className="flex gap-3" key={item.id || i}>
                       <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border bg-muted">
                         {image?.url && (
                           <Image
                             alt={image?.alt || product?.title || ''}
-                            className="h-full w-full object-cover"
+                            className={`h-full w-full object-cover ${outOfStock ? 'opacity-40 grayscale blur-[1px]' : ''}`}
                             height={64}
                             src={image.url}
                             width={64}
@@ -114,7 +115,7 @@ export function CartDrawer() {
                         )}
                       </div>
 
-                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                      <div className={`flex min-w-0 flex-1 flex-col gap-1 ${outOfStock ? 'opacity-70' : ''}`}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <Link
@@ -127,6 +128,7 @@ export function CartDrawer() {
                             {variantLabel && (
                               <p className="truncate text-xs capitalize text-muted-foreground">{variantLabel}</p>
                             )}
+                            {outOfStock && <Badge variant="destructive" className="mt-1">Out of stock</Badge>}
                           </div>
                           <Button
                             aria-label="Remove item"
@@ -185,13 +187,24 @@ export function CartDrawer() {
                   <span className="font-semibold">Total</span>
                   <Price amount={subtotal} as="span" className="text-base font-bold" />
                 </div>
+                {outOfStockCount > 0 && (
+                  <p className="text-xs text-destructive">
+                    {outOfStockCount} item{outOfStockCount === 1 ? ' is' : 's are'} out of stock — remove {outOfStockCount === 1 ? 'it' : 'them'} to checkout.
+                  </p>
+                )}
                 <div className="mt-2 flex flex-col gap-2">
                   <Button asChild onClick={() => setIsOpen(false)} variant="outline">
                     <Link href="/cart">View Cart</Link>
                   </Button>
-                  <Button asChild onClick={() => setIsOpen(false)}>
-                    <Link href="/checkout">Proceed to Checkout</Link>
-                  </Button>
+                  {outOfStockCount > 0 ? (
+                    <Button disabled className="cursor-not-allowed">
+                      Proceed to Checkout
+                    </Button>
+                  ) : (
+                    <Button asChild onClick={() => setIsOpen(false)}>
+                      <Link href="/checkout">Proceed to Checkout</Link>
+                    </Button>
+                  )}
                 </div>
               </div>
             </SheetFooter>

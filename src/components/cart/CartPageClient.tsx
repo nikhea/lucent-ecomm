@@ -1,6 +1,9 @@
 'use client'
+import { EmptyState } from '@/components/EmptyState'
+import { Badge } from '@/components/ui/badge'
 import { Media } from '@/components/Media'
 import { Price } from '@/components/Price'
+import { getCartItemName, getCartItemStock } from '@/utilities/stock'
 import { Button } from '@/components/ui/button'
 import { Package, ShieldCheck, Store } from 'lucide-react'
 import Link from 'next/link'
@@ -11,6 +14,7 @@ import { useOptimisticCart } from '@/store/cart'
 function CartItemCard({ item, idx, onIncrement, onDecrement, onRemove }: { item: any; idx: number; onIncrement: (id: string) => void; onDecrement: (id: string) => void; onRemove: (id: string) => void }) {
   const product = item.product as Product
   const variant = item.variant as any
+  const { outOfStock } = getCartItemStock(item)
   if (typeof product !== 'object' || !product) return null
 
   const image =
@@ -36,22 +40,32 @@ function CartItemCard({ item, idx, onIncrement, onDecrement, onRemove }: { item:
   const delivery = deliveryMap[idx % deliveryMap.length]
 
   return (
-    <div className="rounded-xl border bg-card overflow-hidden">
+    <div className={`rounded-xl border bg-card overflow-hidden ${outOfStock ? 'border-destructive/40' : ''}`}>
       <div className="flex gap-4 p-4">
-        <div className="h-24 w-24 shrink-0 rounded-lg bg-muted overflow-hidden">
+        <div className="h-24 w-24 shrink-0 rounded-lg bg-muted overflow-hidden relative">
           {image && typeof image === 'object' && image.url ? (
-            <Media resource={image as any} className="h-full w-full" imgClassName="h-full w-full object-cover" />
+            <Media resource={image as any} className="h-full w-full" imgClassName={`h-full w-full object-cover ${outOfStock ? 'opacity-40 grayscale blur-[1px]' : ''}`} />
           ) : (
             <div className="h-full w-full bg-muted" />
           )}
+          {outOfStock && (
+            <span className="absolute inset-x-1 bottom-1 rounded bg-destructive px-1 py-0.5 text-center text-[10px] font-semibold text-white">
+              Out of stock
+            </span>
+          )}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className={`flex-1 min-w-0 ${outOfStock ? 'opacity-70' : ''}`}>
           <div className="flex justify-between gap-2">
             <div>
               <Link href={`/products/${product.slug}`} className="text-sm font-semibold leading-tight hover:underline">
                 {product.title}
               </Link>
               {variantLabel && <div className="text-xs text-muted-foreground mt-0.5">{variantLabel}</div>}
+              {outOfStock && (
+                <Badge variant="destructive" className="mt-1">
+                  {getCartItemStock(item).reason === 'no-variant' ? 'No size selected — remove to checkout' : 'Out of stock — remove to checkout'}
+                </Badge>
+              )}
             </div>
             <button onClick={() => onRemove(item.id)} className="h-7 w-7 flex items-center justify-center rounded-full hover:bg-muted">
               <span className="text-muted-foreground">🗑</span>
@@ -82,7 +96,7 @@ function CartItemCard({ item, idx, onIncrement, onDecrement, onRemove }: { item:
   )
 }
 
-function OrderSummary({ subtotal, itemCount }: { subtotal: number; itemCount: number }) {
+function OrderSummary({ subtotal, itemCount, outOfStockNames }: { subtotal: number; itemCount: number; outOfStockNames: string[] }) {
   const shipping = 0
   const savings = Math.round(subtotal * 0.2)
   const total = subtotal
@@ -114,11 +128,22 @@ function OrderSummary({ subtotal, itemCount }: { subtotal: number; itemCount: nu
           <div className="text-xs text-muted-foreground">Including VAT, if applicable</div>
         </div>
       </div>
-      <Button asChild className="w-full bg-black text-white hover:bg-black/90 h-11">
-        <Link href="/checkout">
-          <span className="flex items-center gap-2"><span className="border border-white/20 rounded p-0.5">◫</span> Proceed to Checkout</span>
-        </Link>
-      </Button>
+      {outOfStockNames.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <Button disabled className="w-full h-11 cursor-not-allowed">
+            Proceed to Checkout
+          </Button>
+          <p className="text-xs text-destructive">
+            Remove out-of-stock {outOfStockNames.length === 1 ? 'item' : 'items'} to checkout: {outOfStockNames.join(', ')}
+          </p>
+        </div>
+      ) : (
+        <Button asChild className="w-full bg-black text-white hover:bg-black/90 h-11 cursor-pointer">
+          <Link href="/checkout">
+            <span className="flex items-center gap-2"><span className="border border-white/20 rounded p-0.5">◫</span> Proceed to Checkout</span>
+          </Link>
+        </Button>
+      )}
       <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
         <span className="border rounded px-1 text-[10px]">—</span> Secure payment with SSL encryption
       </div>
@@ -148,24 +173,43 @@ export function CartPageClient() {
 
   if (!items.length) {
     return (
-      <div className="container py-16 text-center">
-        <h1 className="text-2xl font-bold">Your Shopping Cart</h1>
-        <p className="text-muted-foreground mt-2">Your cart is empty.</p>
-        <Button asChild className="mt-6">
-          <Link href="/shop">Continue Shopping →</Link>
-        </Button>
+      <div className="container flex min-h-[60vh] flex-col justify-center py-16">
+        <EmptyState preset="cart" title="Your Shopping Cart is empty" />
       </div>
     )
   }
 
+  const outOfStockNames = items.filter((it: any) => getCartItemStock(it).outOfStock).map((it: any) => getCartItemName(it))
+
   return (
-    <div className="container py-8">
+    <div className="container min-h-[60vh] py-8">
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold">Your Shopping Cart</h1>
         <div className="text-sm text-muted-foreground mt-1">
           {itemCount} items in your cart • <Price as="span" amount={subtotal} className="font-medium text-foreground" />
         </div>
       </div>
+
+      {outOfStockNames.length > 0 && (
+        <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-semibold text-destructive">Some items can't be checked out</p>
+              <p className="mt-1 text-muted-foreground">{outOfStockNames.join(', ')} — {items.some((it: any) => getCartItemStock(it).reason === 'no-variant') ? 're-add with a size selected, or remove' : 'remove'} {outOfStockNames.length === 1 ? 'it' : 'them'} to continue to checkout.</p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              className="cursor-pointer border-destructive/40 text-destructive hover:bg-destructive/10"
+              onClick={() => {
+                for (const it of items.filter((it: any) => getCartItemStock(it).outOfStock)) removeItem(it.id)
+              }}
+            >
+              Remove all unavailable
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_0.9fr] gap-6 items-start">
         <div className="flex flex-col gap-4">
@@ -175,7 +219,7 @@ export function CartPageClient() {
         </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-[80px]">
-          <OrderSummary subtotal={subtotal} itemCount={itemCount} />
+          <OrderSummary subtotal={subtotal} itemCount={itemCount} outOfStockNames={outOfStockNames} />
 
           <div className="rounded-xl border bg-amber-50 dark:bg-amber-950/30 dark:border-amber-900/30 p-4 flex gap-3">
             <span className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">

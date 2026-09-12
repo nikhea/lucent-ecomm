@@ -4,6 +4,7 @@ import { Heart, Minus, Plus, ShoppingBag } from 'lucide-react'
 import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
 import React, { useState, useCallback } from 'react'
 import { toast } from 'sonner'
+import { useWishlistStore } from '@/store/wishlist'
 import type { Product, Variant } from '@/payload-types'
 import { useSearchParams } from 'next/navigation'
 
@@ -17,20 +18,19 @@ export function QuantityAndCart({ product }: { product: Product }) {
       const variantId = searchParams.get('variant')
       let v = variants.find((va) => typeof va === 'object' && String((va as any).id) === variantId) as Variant | undefined
       if (!v) {
-        const selectedIds = Array.from(searchParams.entries())
-          .filter(([k]) => k !== 'variant')
-          .map(([, val]) => val)
-        if (selectedIds.length) {
+        const requiredTypes = (product.variantTypes || [])
+          .filter((t: any) => typeof t === 'object')
+          .map((t: any) => t.name)
+        const hasAllOptions = requiredTypes.length > 0 && requiredTypes.every((name: string) => searchParams.get(name))
+        if (hasAllOptions) {
+          const selectedIds = requiredTypes.map((name: string) => searchParams.get(name) as string)
           v = variants.find((va: any) => typeof va === 'object' && selectedIds.every((sid) => va.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === sid))) as Variant | undefined
-          if (!v) {
-            v = variants.find((va: any) => typeof va === 'object' && selectedIds.some((sid) => va.options?.some((o: any) => String(typeof o === 'object' ? o.id : o) === sid))) as Variant | undefined
-          }
         }
       }
       return v
     }
     return undefined
-  }, [product.enableVariants, searchParams, variants])
+  }, [product.enableVariants, product.variantTypes, searchParams, variants])
 
   const onAdd = useCallback(
     (e: React.FormEvent) => {
@@ -56,8 +56,13 @@ export function QuantityAndCart({ product }: { product: Product }) {
           <ShoppingBag className="h-4 w-4 mr-2" /> Add to Cart
         </Button>
       </div>
-      <Button variant="outline" className="w-full h-10">
-        <Heart className="h-4 w-4 mr-2" /> Add to Wishlist
+      <Button
+        variant="outline"
+        className="w-full h-10"
+        onClick={() => useWishlistStore.getState().toggle(String(product.id), (selectedVariant as any)?.id ?? null)}
+      >
+        <Heart className={`h-4 w-4 mr-2 ${useWishlistStore((s) => s.isWished(String(product.id))) ? 'fill-current' : ''}`} />
+        {useWishlistStore((s) => s.isWished(String(product.id))) ? 'Saved to Wishlist' : 'Add to Wishlist'}
       </Button>
       <div className="grid grid-cols-3 gap-2 mt-2">
         <div className="rounded-lg border p-3 text-center">

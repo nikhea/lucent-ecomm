@@ -14,7 +14,7 @@ export const Footer: GlobalConfig = {
       name: 'brandName',
       type: 'text',
       required: true,
-      defaultValue: 'EcommerceKit',
+      defaultValue: 'LUCENT',
       admin: { description: 'Logo text' },
     },
     {
@@ -92,7 +92,7 @@ export const Footer: GlobalConfig = {
       name: 'copyright',
       type: 'text',
       required: true,
-      defaultValue: '© 2025 EcommerceKit. All rights reserved.',
+      defaultValue: '© 2025 LUCENT. All rights reserved.',
     },
     {
       name: 'navItems',

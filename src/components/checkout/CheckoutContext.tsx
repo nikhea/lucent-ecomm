@@ -96,7 +96,7 @@ export const CheckoutProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (e) {
       const errorData = e instanceof Error ? (() => { try { return JSON.parse(e.message) } catch { return {} } })() : {}
       let msg = 'An error occurred while initiating payment.'
-      if (errorData?.cause?.code === 'OutOfStock') msg = 'One or more items in your cart are out of stock.'
+      if (errorData?.cause?.code === 'OutOfStock') msg = 'One or more items in your cart are out of stock. Out-of-stock items are marked in your cart — remove them to continue.'
       setError(msg)
       toast.error(msg)
     }

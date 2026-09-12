@@ -55,14 +55,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <link href="/favicon.ico" rel="icon" sizes="32x32" />
         <link href="/favicon.svg" rel="icon" type="image/svg+xml" />
       </head>
-      <body suppressHydrationWarning>
+      <body suppressHydrationWarning className="flex min-h-screen flex-col">
         <NuqsAdapter>
           <Providers>
             <AdminBar />
             <LivePreviewListener />
 
             <Header />
-            <main className="pt-[64px]">{children}</main>
+            <main className="flex flex-1 flex-col pt-[64px]">{children}</main>
             <Footer />
           </Providers>
         </NuqsAdapter>

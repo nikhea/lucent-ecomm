@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/EmptyState'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import Link from 'next/link'
 import { headers as getHeaders } from 'next/headers.js'
@@ -64,7 +65,9 @@ export default async function AccountPage() {
         </div>
 
         {(!orders || !Array.isArray(orders) || orders?.length === 0) && (
-          <p className="mb-8">You have no orders.</p>
+          <div className="mb-8">
+            <EmptyState preset="orders" />
+          </div>
         )}
 
         {orders && orders.length > 0 && (

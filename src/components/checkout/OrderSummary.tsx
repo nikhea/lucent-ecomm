@@ -1,6 +1,8 @@
 'use client'
 import { Media } from '@/components/Media'
 import { Price } from '@/components/Price'
+import { Badge } from '@/components/ui/badge'
+import { getCartItemStock } from '@/utilities/stock'
 import { useCart } from '@payloadcms/plugin-ecommerce/client/react'
 import { Lock, Package, ShieldCheck, Truck } from 'lucide-react'
 
@@ -16,6 +18,7 @@ export const OrderSummary: React.FC = () => {
             if (typeof item.product === 'object' && item.product) {
               const { product, quantity, variant } = item as any
               if (!quantity) return null
+              const { outOfStock } = getCartItemStock(item)
               let image = (product as any).gallery?.[0]?.image || (product as any).meta?.image
               let price = (product as any)?.priceInUSD
               const isVariant = Boolean(variant) && typeof variant === 'object'
@@ -31,15 +34,16 @@ export const OrderSummary: React.FC = () => {
               return (
                 <div className="flex gap-3" key={index}>
                   <div className="h-16 w-16 shrink-0 rounded-lg bg-muted overflow-hidden border relative">
-                    {image && typeof image !== 'string' && <Media className="h-full w-full" imgClassName="h-full w-full object-cover" resource={image} />}
+                    {image && typeof image !== 'string' && <Media className="h-full w-full" imgClassName={`h-full w-full object-cover ${outOfStock ? 'opacity-40 grayscale blur-[1px]' : ''}`} resource={image} />}
                     <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-black text-white text-[11px] flex items-center justify-center font-medium">{quantity}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className={`flex-1 min-w-0 ${outOfStock ? 'opacity-70' : ''}`}>
                     <p className="text-sm font-medium leading-tight truncate">{(product as any).title}</p>
                     {variant && typeof variant === 'object' && (
                       <p className="text-xs font-mono text-muted-foreground truncate">{(variant as any).options?.map((o: any) => (typeof o === 'object' ? o.label : null)).join(' • ')}</p>
                     )}
                     <p className="text-xs text-muted-foreground mt-0.5">Qty {quantity}</p>
+                    {outOfStock && <Badge variant="destructive" className="mt-1">Out of stock</Badge>}
                   </div>
                   {typeof price === 'number' && <Price amount={price * quantity} as="span" className="text-sm font-semibold shrink-0" />}
                 </div>

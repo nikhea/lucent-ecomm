@@ -4,7 +4,7 @@ export const seedFooter = async ({ payload, req }: { payload: Payload; req?: Pay
   payload.logger.info('— Seed footer CMS data')
 
   const data: any = {
-    brandName: 'EcommerceKit',
+    brandName: 'LUCENT',
     description: 'Discover premium products with exceptional quality and modern design. Your satisfaction is our priority.',
     newsletter: {
       title: 'Subscribe to our newsletter',
@@ -29,7 +29,7 @@ export const seedFooter = async ({ payload, req }: { payload: Payload; req?: Pay
       { platform: 'twitter', url: 'https://twitter.com' },
       { platform: 'instagram', url: 'https://instagram.com' },
     ],
-    copyright: `© ${new Date().getFullYear()} EcommerceKit. All rights reserved.`,
+    copyright: `© ${new Date().getFullYear()} LUCENT. All rights reserved.`,
   }
 
   await payload.updateGlobal({ slug: 'footer', data, overrideAccess: true, req } as any)
