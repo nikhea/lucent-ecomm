@@ -40,7 +40,7 @@ function CartItemCard({ item, idx, onIncrement, onDecrement, onRemove }: { item:
   const delivery = deliveryMap[idx % deliveryMap.length]
 
   return (
-    <div className={`rounded-xl border bg-card overflow-hidden ${outOfStock ? 'border-destructive/40' : ''}`}>
+    <div className={`rounded-xl border bg-card overflow-hidden ${outOfStock ? 'border-[#d29e9e]' : ''}`}>
       <div className="flex gap-4 p-4">
         <div className="h-24 w-24 shrink-0 rounded-lg bg-muted overflow-hidden relative">
           {image && typeof image === 'object' && image.url ? (
@@ -49,7 +49,7 @@ function CartItemCard({ item, idx, onIncrement, onDecrement, onRemove }: { item:
             <div className="h-full w-full bg-muted" />
           )}
           {outOfStock && (
-            <span className="absolute inset-x-1 bottom-1 rounded bg-destructive px-1 py-0.5 text-center text-[10px] font-semibold text-white">
+            <span className="absolute inset-x-1 bottom-1 rounded bg-[#e6bcbc] px-1 py-0.5 text-center text-[10px] font-semibold text-black">
               Out of stock
             </span>
           )}
@@ -62,7 +62,7 @@ function CartItemCard({ item, idx, onIncrement, onDecrement, onRemove }: { item:
               </Link>
               {variantLabel && <div className="text-xs text-muted-foreground mt-0.5">{variantLabel}</div>}
               {outOfStock && (
-                <Badge variant="destructive" className="mt-1">
+                <Badge variant="destructive" className="mt-1 border-[#d29e9e] bg-[#e6bcbc] text-black hover:bg-[#e6bcbc]">
                   {getCartItemStock(item).reason === 'no-variant' ? 'No size selected — remove to checkout' : 'Out of stock — remove to checkout'}
                 </Badge>
               )}
@@ -130,7 +130,7 @@ function OrderSummary({ subtotal, itemCount, outOfStockNames }: { subtotal: numb
       </div>
       {outOfStockNames.length > 0 ? (
         <div className="flex flex-col gap-2">
-          <Button disabled className="w-full h-11 cursor-not-allowed">
+          <Button disabled variant="outline" className="h-11 w-full cursor-not-allowed text-muted-foreground">
             Proceed to Checkout
           </Button>
           <p className="text-xs text-destructive">
@@ -191,16 +191,16 @@ export function CartPageClient() {
       </div>
 
       {outOfStockNames.length > 0 && (
-        <div className="mb-6 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
+        <div className="mb-6 rounded-xl border border-[#d29e9e] bg-[#e6bcbc] p-4 text-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="font-semibold text-destructive">Some items can't be checked out</p>
-              <p className="mt-1 text-muted-foreground">{outOfStockNames.join(', ')} — {items.some((it: any) => getCartItemStock(it).reason === 'no-variant') ? 're-add with a size selected, or remove' : 'remove'} {outOfStockNames.length === 1 ? 'it' : 'them'} to continue to checkout.</p>
+              <p className="font-semibold text-black">Some items can't be checked out</p>
+              <p className="mt-1 text-black/70">{outOfStockNames.join(', ')} — {items.some((it: any) => getCartItemStock(it).reason === 'no-variant') ? 're-add with a size selected, or remove' : 'remove'} {outOfStockNames.length === 1 ? 'it' : 'them'} to continue to checkout.</p>
             </div>
             <Button
               size="sm"
               variant="outline"
-              className="cursor-pointer border-destructive/40 text-destructive hover:bg-destructive/10"
+              className="cursor-pointer border-[#c98f8f] bg-white/70 text-black hover:bg-white"
               onClick={() => {
                 for (const it of items.filter((it: any) => getCartItemStock(it).outOfStock)) removeItem(it.id)
               }}

@@ -21,6 +21,7 @@ async function getGlobal<T extends Global>(slug: T, depth = 0) {
  * Returns a unstable_cache function mapped with the cache tag for the slug
  */
 export const getCachedGlobal = <T extends Global>(slug: T, depth = 0) =>
-  unstable_cache(async () => getGlobal<T>(slug, depth), [slug], {
+  // cache key version is bumped whenever the cached shape changes
+  unstable_cache(async () => getGlobal<T>(slug, depth), [slug, 'v2'], {
     tags: [`global_${slug}`],
   })

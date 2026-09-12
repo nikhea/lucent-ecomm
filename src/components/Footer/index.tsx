@@ -15,17 +15,20 @@ export async function Footer() {
   const description = (footer as any).description || 'Discover premium products with exceptional quality and modern design. Your satisfaction is our priority.'
   const newsletter = (footer as any).newsletter || { title: 'Subscribe to our newsletter', placeholder: 'Enter your email', buttonLabel: 'Subscribe' }
   const quickLinksTitle = (footer as any).quickLinksTitle || 'Quick Links'
-  const quickLinks = (footer as any).quickLinks || [
-    { id: '1', link: { label: 'About Us', url: '/about' } },
-    { id: '2', link: { label: 'Contact', url: '/contact' } },
-    { id: '3', link: { label: 'FAQ', url: '/contact' } },
-    { id: '4', link: { label: 'Shipping Info', url: '/shop' } },
-  ]
+  const quickLinks = (footer as any).quickLinks?.length
+    ? (footer as any).quickLinks
+    : [
+        { id: '1', link: { label: 'About Us', url: '/about-us' } },
+        { id: '2', link: { label: 'Contact', url: '/contact' } },
+        { id: '3', link: { label: 'FAQ', url: '/faq' } },
+      ]
   const legalTitle = (footer as any).legalTitle || 'Legal'
-  const legalLinks = (footer as any).legalLinks || [
-    { id: '1', link: { label: 'Privacy Policy', url: '/privacy' } },
-    { id: '2', link: { label: 'Terms of Service', url: '/terms' } },
-    { id: '3', link: { label: 'Returns', url: '/returns' } },
+  const legalLinks = (footer as any).legalLinks?.length
+    ? (footer as any).legalLinks
+    : [
+        { id: '1', link: { label: 'Privacy Policy', url: '/privacy-policy' } },
+        { id: '2', link: { label: 'Terms of Service', url: '/terms-of-service' } },
+        { id: '3', link: { label: 'Returns', url: '/returns' } },
   ]
   const socialLinks = (footer as any).socialLinks || [
     { id: '1', platform: 'facebook', url: '#' },

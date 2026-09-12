@@ -197,7 +197,7 @@ export function CartDrawer() {
                     <Link href="/cart">View Cart</Link>
                   </Button>
                   {outOfStockCount > 0 ? (
-                    <Button disabled className="cursor-not-allowed">
+                    <Button disabled variant="outline" className="cursor-not-allowed text-muted-foreground">
                       Proceed to Checkout
                     </Button>
                   ) : (
