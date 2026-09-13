@@ -13,6 +13,18 @@ import {
   Section,
   Text,
 } from '@react-email/components'
+import {
+  button,
+  buttonWrap,
+  eyebrow,
+  footerLinks,
+  footerNote,
+  headline,
+  palette,
+  fonts,
+  subcopy,
+  wordmark,
+} from './theme'
 
 export type OrderConfirmationItem = {
   title: string
@@ -31,84 +43,86 @@ type OrderConfirmationEmailProps = {
   shippingLines?: string[]
 }
 
-function formatFallback(lines?: string[]) {
-  return (lines || []).filter(Boolean)
-}
-
 export default function OrderConfirmationEmail({
   orderNumber,
   orderUrl,
-  companyName = 'Lucent',
+  companyName = 'LUCENT',
   items,
   total,
   customerEmail,
   shippingLines,
 }: OrderConfirmationEmailProps) {
-  const address = formatFallback(shippingLines)
+  const address = (shippingLines || []).filter(Boolean)
   return (
     <Html>
       <Head />
-      <Preview>
-        Your {companyName} order {orderNumber} is confirmed
-      </Preview>
+      <Preview>Your {companyName} order {orderNumber} is confirmed</Preview>
       <Body style={body}>
-        <Container style={container}>
-          <Heading style={h1}>Thanks for your order!</Heading>
-          <Text style={text}>
-            Order {orderNumber} is confirmed{customerEmail ? ` for ${customerEmail}` : ''}. We will
-            email you again when it ships.
-          </Text>
-          <Section style={btnWrap}>
-            <Button style={btn} href={orderUrl}>
-              View order {orderNumber}
-            </Button>
+        <Container style={outer}>
+          <Section style={hero}>
+            <Text style={wordmark}>{companyName}</Text>
+            <Text style={heroEyebrow}>Order {orderNumber} · Confirmed</Text>
+            <Heading style={headline}>Thank you, it&apos;s on its way to you.</Heading>
+            <Text style={subcopy}>
+              {customerEmail ? `A receipt is on its way to ${customerEmail}. ` : ''}We&apos;ll email
+              you again the moment your pieces ship.
+            </Text>
+            <Section style={buttonWrap}>
+              <Button style={button} href={orderUrl}>
+                Track your order
+              </Button>
+            </Section>
           </Section>
-          <Hr style={hr} />
-          <Heading as="h2" style={h2}>
-            Order summary
-          </Heading>
-          {items.map((item, i) => (
-            <Row key={i} style={row}>
-              <Column style={itemCol}>
-                <Text style={itemTitle}>{item.title}</Text>
-                <Text style={muted}>Qty {item.quantity}</Text>
+          <Section style={card}>
+            <Text style={sectionTitle}>Your pieces</Text>
+            {items.map((item, i) => (
+              <Section key={i}>
+                {i > 0 && <Hr style={hr} />}
+                <Row>
+                  <Column style={itemCol}>
+                    <Text style={itemTitle}>{item.title}</Text>
+                    <Text style={muted}>
+                      Qty {item.quantity}
+                      {item.unitPrice ? ` · ${item.unitPrice} each` : ''}
+                    </Text>
+                  </Column>
+                  <Column style={priceCol}>
+                    <Text style={itemPrice}>{item.lineTotal}</Text>
+                  </Column>
+                </Row>
+              </Section>
+            ))}
+            <Hr style={hrFull} />
+            <Row>
+              <Column>
+                <Text style={totalLabel}>Order total</Text>
               </Column>
               <Column style={priceCol}>
-                <Text style={itemPrice}>{item.lineTotal}</Text>
-                <Text style={muted}>{item.unitPrice} each</Text>
+                <Text style={totalValue}>{total}</Text>
               </Column>
             </Row>
-          ))}
-          <Hr style={hr} />
-          <Row>
-            <Column>
-              <Text style={totalLabel}>Total</Text>
-            </Column>
-            <Column style={priceCol}>
-              <Text style={totalValue}>{total}</Text>
-            </Column>
-          </Row>
-          {address.length > 0 && (
-            <Section>
-              <Hr style={hr} />
-              <Heading as="h2" style={h2}>
-                Shipping to
-              </Heading>
-              {address.map((line, i) => (
-                <Text key={i} style={addressLine}>
-                  {line}
-                </Text>
-              ))}
-            </Section>
-          )}
-          <Hr style={hr} />
-          <Text style={muted}>
-            Questions? Reply to this email or visit{' '}
-            <Link style={link} href={orderUrl}>
-              your order page
-            </Link>
-            .
-          </Text>
+            <Text style={shipNote}>Complimentary shipping · Arrives in 2–3 days</Text>
+            {address.length > 0 && (
+              <Section style={addressBox}>
+                <Text style={addressTitle}>Shipping to</Text>
+                {address.map((line, i) => (
+                  <Text key={i} style={addressLine}>
+                    {line}
+                  </Text>
+                ))}
+              </Section>
+            )}
+          </Section>
+          <Section style={foot}>
+            <Text style={footerNote}>
+              Questions about fit or delivery? Reply to this email or visit{' '}
+              <Link style={footerLinks} href={orderUrl}>
+                your order page
+              </Link>
+              .
+            </Text>
+            <Text style={brand}>© {companyName}</Text>
+          </Section>
         </Container>
       </Body>
     </Html>
@@ -119,78 +133,50 @@ OrderConfirmationEmail.PreviewProps = {
   orderNumber: 'ORD-01001',
   orderUrl: 'http://localhost:3000/orders/123?email=you@example.com&accessToken=demo',
   items: [
-    { title: 'Aerial Wireless Headphones', quantity: 1, unitPrice: '$399.00', lineTotal: '$399.00' },
-    { title: 'Studio T-Shirt', quantity: 2, unitPrice: '$45.00', lineTotal: '$90.00' },
+    { title: 'Liora Satin Wrap Blouse', quantity: 1, unitPrice: '$64.99', lineTotal: '$64.99' },
+    { title: 'Nova Bodycon Maxi Dress', quantity: 1, unitPrice: '$99.99', lineTotal: '$99.99' },
   ],
-  total: '$489.00',
+  total: '$164.98',
   customerEmail: 'you@example.com',
   shippingLines: ['Jane Doe', '123 Commerce Street', 'New York, NY 10001'],
 } satisfies OrderConfirmationEmailProps
 
 const body = {
-  backgroundColor: '#f6f6f6',
-  fontFamily: 'Arial, Helvetica, sans-serif',
+  backgroundColor: palette.page,
+  fontFamily: fonts.sans,
+  padding: '32px 0',
 }
 
-const container = {
-  backgroundColor: '#ffffff',
-  borderRadius: '8px',
-  margin: '40px auto',
-  maxWidth: '560px',
-  padding: '32px',
+const outer = {
+  margin: '0 auto',
+  maxWidth: '580px',
 }
 
-const h1 = {
-  fontSize: '22px',
+const hero = {
+  backgroundColor: palette.blush,
+  borderRadius: '16px 16px 0 0',
+  padding: '40px 40px 36px',
+}
+
+const heroEyebrow = {
+  ...eyebrow,
+  margin: '20px 0 12px',
+}
+
+const card = {
+  backgroundColor: palette.card,
+  borderRadius: '0 0 16px 16px',
+  padding: '32px 40px',
+}
+
+const sectionTitle = {
+  color: palette.taupe,
+  fontFamily: fonts.sans,
+  fontSize: '11px',
   fontWeight: '700',
+  letterSpacing: '0.25em',
   margin: '0 0 16px',
-}
-
-const h2 = {
-  fontSize: '16px',
-  fontWeight: '700',
-  margin: '0 0 12px',
-}
-
-const text = {
-  color: '#333333',
-  fontSize: '14px',
-  lineHeight: '22px',
-}
-
-const muted = {
-  color: '#777777',
-  fontSize: '12px',
-  lineHeight: '20px',
-  margin: '4px 0',
-}
-
-const btnWrap = {
-  margin: '24px 0',
-}
-
-const btn = {
-  backgroundColor: '#000000',
-  borderRadius: '6px',
-  color: '#ffffff',
-  fontSize: '14px',
-  fontWeight: '700',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-
-const link = {
-  color: '#000000',
-  fontSize: '13px',
-}
-
-const hr = {
-  borderColor: '#eeeeee',
-  margin: '24px 0',
-}
-
-const row = {
-  margin: '12px 0',
+  textTransform: 'uppercase' as const,
 }
 
 const itemCol = {
@@ -200,38 +186,102 @@ const itemCol = {
 const priceCol = {
   textAlign: 'right' as const,
   verticalAlign: 'top' as const,
+  width: '110px',
 }
 
 const itemTitle = {
-  color: '#111111',
-  fontSize: '14px',
-  fontWeight: '700',
-  margin: '0',
+  color: palette.ink,
+  fontFamily: fonts.serif,
+  fontSize: '16px',
+  margin: '0 0 4px',
 }
 
 const itemPrice = {
-  color: '#111111',
+  color: palette.ink,
+  fontFamily: fonts.sans,
   fontSize: '14px',
   fontWeight: '700',
   margin: '0',
 }
 
+const muted = {
+  color: palette.muted,
+  fontFamily: fonts.sans,
+  fontSize: '12px',
+  margin: '0',
+}
+
+const hr = {
+  borderColor: palette.hairline,
+  margin: '16px 0',
+}
+
+const hrFull = {
+  borderColor: palette.ink,
+  borderWidth: '1px',
+  margin: '20px 0 16px',
+}
+
 const totalLabel = {
-  color: '#111111',
-  fontSize: '15px',
+  color: palette.ink,
+  fontFamily: fonts.sans,
+  fontSize: '12px',
   fontWeight: '700',
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase' as const,
 }
 
 const totalValue = {
-  color: '#111111',
-  fontSize: '16px',
+  color: palette.ink,
+  fontFamily: fonts.serif,
+  fontSize: '22px',
+  margin: '0',
+}
+
+const shipNote = {
+  color: palette.taupe,
+  fontFamily: fonts.sans,
+  fontSize: '12px',
+  fontStyle: 'italic',
+  margin: '12px 0 0',
+  textAlign: 'center' as const,
+}
+
+const addressBox = {
+  backgroundColor: palette.page,
+  borderRadius: '12px',
+  marginTop: '20px',
+  padding: '20px 24px',
+}
+
+const addressTitle = {
+  color: palette.taupe,
+  fontFamily: fonts.sans,
+  fontSize: '11px',
   fontWeight: '700',
-  textAlign: 'right' as const,
+  letterSpacing: '0.25em',
+  margin: '0 0 8px',
+  textTransform: 'uppercase' as const,
 }
 
 const addressLine = {
-  color: '#333333',
+  color: palette.body,
+  fontFamily: fonts.sans,
   fontSize: '13px',
   lineHeight: '20px',
   margin: '0',
+}
+
+const foot = {
+  padding: '24px 40px 8px',
+}
+
+const brand = {
+  color: palette.taupe,
+  fontFamily: fonts.sans,
+  fontSize: '11px',
+  fontWeight: '700',
+  letterSpacing: '0.3em',
+  margin: '16px 0 0',
+  textAlign: 'center' as const,
 }

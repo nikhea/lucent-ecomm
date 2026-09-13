@@ -31,6 +31,7 @@ import { Wishlist } from '@/collections/Wishlist'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
 import { sendOrderConfirmationTask } from '@/jobs/sendOrderConfirmation'
+import { sendWelcomeEmailTask } from '@/jobs/sendWelcomeEmail'
 import {
   cloudinaryAdapter,
   cloudinaryFolder,
@@ -115,7 +116,7 @@ export default buildConfig({
   endpoints: [],
   globals: [Header, Footer],
   jobs: {
-    tasks: [sendOrderConfirmationTask],
+    tasks: [sendOrderConfirmationTask, sendWelcomeEmailTask],
     autoRun: [{ cron: '* * * * *', queue: 'default', limit: 10 }],
   },
   plugins: [

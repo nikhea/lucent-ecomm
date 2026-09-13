@@ -7,6 +7,7 @@ import { adminOrSelf } from '@/access/adminOrSelf'
 import { checkRole } from '@/access/utilities'
 
 import { ensureFirstUserIsAdmin } from './hooks/ensureFirstUserIsAdmin'
+import { queueWelcomeEmail } from '@/jobs/sendWelcomeEmail'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -25,6 +26,9 @@ export const Users: CollectionConfig = {
   },
   auth: {
     tokenExpiration: 1209600,
+  },
+  hooks: {
+    afterChange: [queueWelcomeEmail],
   },
   fields: [
     {

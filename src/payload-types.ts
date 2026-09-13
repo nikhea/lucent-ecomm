@@ -175,6 +175,7 @@ export interface Config {
   jobs: {
     tasks: {
       sendOrderConfirmation: TaskSendOrderConfirmation;
+      sendWelcomeEmail: TaskSendWelcomeEmail;
       inline: {
         input: unknown;
         output: unknown;
@@ -1926,7 +1927,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'sendOrderConfirmation';
+        taskSlug: 'inline' | 'sendOrderConfirmation' | 'sendWelcomeEmail';
         taskID: string;
         input?:
           | {
@@ -1959,7 +1960,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'sendOrderConfirmation') | null;
+  taskSlug?: ('inline' | 'sendOrderConfirmation' | 'sendWelcomeEmail') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -3527,6 +3528,18 @@ export interface CollectionsWidget {
 export interface TaskSendOrderConfirmation {
   input: {
     orderID: string;
+  };
+  output: {
+    emailSent: boolean;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSendWelcomeEmail".
+ */
+export interface TaskSendWelcomeEmail {
+  input: {
+    userID: string;
   };
   output: {
     emailSent: boolean;

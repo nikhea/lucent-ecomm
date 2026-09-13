@@ -4,6 +4,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Link,
   Preview,
@@ -23,48 +24,57 @@ import {
   wordmark,
 } from './theme'
 
-type OrderAccessEmailProps = {
-  orderId: string
-  orderUrl: string
+type WelcomeEmailProps = {
+  name?: string
+  shopUrl: string
+  accountUrl: string
   companyName?: string
 }
 
-export default function OrderAccessEmail({
-  orderId,
-  orderUrl,
+export default function WelcomeEmail({
+  name,
+  shopUrl,
+  accountUrl,
   companyName = 'LUCENT',
-}: OrderAccessEmailProps) {
+}: WelcomeEmailProps) {
   return (
     <Html>
       <Head />
-      <Preview>View your {companyName} order #{orderId}</Preview>
+      <Preview>
+        Welcome to {companyName}
+        {name ? `, ${name}` : ''} — your wardrobe awaits
+      </Preview>
       <Body style={body}>
         <Container style={outer}>
           <Section style={hero}>
             <Text style={wordmark}>{companyName}</Text>
-            <Text style={heroEyebrow}>Order #{orderId}</Text>
-            <Heading style={headline}>Here is your order.</Heading>
+            <Text style={heroEyebrow}>New member</Text>
+            <Heading style={headline}>Welcome{name ? `, ${name}` : ''}.</Heading>
             <Text style={subcopy}>
-              Tap below to view your pieces, tracking, and delivery details.
+              Your account is ready — faster checkout, order tracking, and a wishlist for the
+              pieces you love.
             </Text>
             <Section style={buttonWrap}>
-              <Button style={button} href={orderUrl}>
-                View my order
+              <Button style={button} href={shopUrl}>
+                Start shopping
               </Button>
             </Section>
           </Section>
           <Section style={card}>
-            <Text style={fallbackLabel}>Link not working?</Text>
-            <Text style={fallback}>
-              Copy this URL into your browser:
-            </Text>
-            <Link style={urlLink} href={orderUrl}>
-              {orderUrl}
-            </Link>
+            <Text style={perkTitle}>Always on the house</Text>
+            <Text style={perk}>Complimentary shipping on every order</Text>
+            <Hr style={hr} />
+            <Text style={perk}>Easy returns within 30 days</Text>
+            <Hr style={hr} />
+            <Text style={perk}>Early access to new drops</Text>
           </Section>
           <Section style={foot}>
             <Text style={footerNote}>
-              This link gives you private access to your order details.
+              Manage your profile in{' '}
+              <Link style={footerLinks} href={accountUrl}>
+                your account
+              </Link>
+              . If you did not create this account, please ignore this email.
             </Text>
             <Text style={brand}>© {companyName}</Text>
           </Section>
@@ -74,10 +84,11 @@ export default function OrderAccessEmail({
   )
 }
 
-OrderAccessEmail.PreviewProps = {
-  orderId: '123',
-  orderUrl: 'http://localhost:3000/orders/123?email=you@example.com&accessToken=demo',
-} satisfies OrderAccessEmailProps
+WelcomeEmail.PreviewProps = {
+  name: 'Jane',
+  shopUrl: 'http://localhost:3000/shop',
+  accountUrl: 'http://localhost:3000/account',
+} satisfies WelcomeEmailProps
 
 const body = {
   backgroundColor: palette.page,
@@ -107,32 +118,28 @@ const card = {
   padding: '32px 40px',
 }
 
-const fallbackLabel = {
-  color: palette.taupe,
-  fontFamily: fonts.sans,
-  fontSize: '11px',
-  fontWeight: '700',
-  letterSpacing: '0.25em',
+const perkTitle = {
+  color: palette.ink,
+  fontFamily: fonts.serif,
+  fontSize: '18px',
   margin: '0 0 8px',
   textAlign: 'center' as const,
-  textTransform: 'uppercase' as const,
 }
 
-const fallback = {
+const perk = {
   color: palette.body,
   fontFamily: fonts.sans,
   fontSize: '13px',
-  margin: '0 0 8px',
+  letterSpacing: '0.04em',
+  lineHeight: '22px',
+  margin: '0',
   textAlign: 'center' as const,
 }
 
-const urlLink = {
-  color: palette.ink,
-  fontFamily: fonts.sans,
-  fontSize: '12px',
-  overflowWrap: 'break-word' as const,
-  textAlign: 'center' as const,
-  textDecoration: 'underline',
+const hr = {
+  borderColor: palette.hairline,
+  margin: '14px auto',
+  width: '120px',
 }
 
 const foot = {
