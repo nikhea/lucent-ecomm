@@ -15,6 +15,7 @@ import { stripeAdapter } from '@payloadcms/plugin-ecommerce/payments/stripe'
 import { Page, Product } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
 import { ProductsCollection } from '@/collections/Products'
+import { queueOrderConfirmationEmail } from '@/jobs/sendOrderConfirmation'
 import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
 import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
@@ -98,6 +99,13 @@ export const plugins: Plugin[] = [
     orders: {
       ordersCollectionOverride: ({ defaultCollection }) => ({
         ...defaultCollection,
+        hooks: {
+          ...(defaultCollection.hooks || {}),
+          afterChange: [
+            ...((defaultCollection.hooks && defaultCollection.hooks.afterChange) || []),
+            queueOrderConfirmationEmail,
+          ],
+        },
         fields: [
           ...defaultCollection.fields,
           {

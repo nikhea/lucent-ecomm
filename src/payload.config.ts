@@ -30,6 +30,7 @@ import { Users } from '@/collections/Users'
 import { Wishlist } from '@/collections/Wishlist'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
+import { sendOrderConfirmationTask } from '@/jobs/sendOrderConfirmation'
 import {
   cloudinaryAdapter,
   cloudinaryFolder,
@@ -113,6 +114,10 @@ export default buildConfig({
       : undefined,
   endpoints: [],
   globals: [Header, Footer],
+  jobs: {
+    tasks: [sendOrderConfirmationTask],
+    autoRun: [{ cron: '* * * * *', queue: 'default', limit: 10 }],
+  },
   plugins: [
     ...plugins,
     ...(hasCloudinaryEnv
