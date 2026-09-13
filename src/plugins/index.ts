@@ -1,4 +1,5 @@
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
+import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { seoPlugin } from '@payloadcms/plugin-seo'
 import { Plugin } from 'payload'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
@@ -156,5 +157,79 @@ export const plugins: Plugin[] = [
   salesReportsPlugin({
     timeZone: (process.env.SALES_REPORTS_TIMEZONE as any) || 'America/New_York',
     isAdmin: isAdmin as any,
+  }),
+  mcpPlugin({
+    collections: {
+      pages: {
+        enabled: true,
+        description: 'Storefront pages and content.',
+      },
+      products: {
+        enabled: true,
+        description: 'Product catalog including variants and pricing.',
+      },
+      categories: {
+        enabled: true,
+        description: 'Product categories.',
+      },
+      'shop-collections': {
+        enabled: true,
+        description: 'Curated product collections.',
+      },
+      media: {
+        enabled: { find: true, create: false, update: false, delete: false },
+        description: 'Uploaded media assets.',
+      },
+      reviews: {
+        enabled: true,
+        description: 'Product reviews.',
+      },
+      orders: {
+        enabled: true,
+        description: 'Customer orders.',
+      },
+      carts: {
+        enabled: true,
+        description: 'Shopping carts.',
+      },
+      users: {
+        enabled: { find: true, create: false, update: false, delete: false },
+        description: 'Store customers and admins.',
+        overrideResponse: (response) => ({
+          ...response,
+          content: response.content.map((item) => ({
+            ...item,
+            text: item.text
+              .replace(/"hash":\s*"[^"]*"/g, '"hash": "[redacted]"')
+              .replace(/"salt":\s*"[^"]*"/g, '"salt": "[redacted]"'),
+          })),
+        }),
+      },
+    },
+    globals: {
+      header: {
+        enabled: { find: true, update: true },
+        description: 'Site header navigation.',
+      },
+      footer: {
+        enabled: { find: true, update: true },
+        description: 'Site footer content.',
+      },
+    },
+    overrideApiKeyCollection: (collection: any) => {
+      collection.access = {
+        create: isAdmin,
+        delete: isAdmin,
+        read: isAdmin,
+        unlock: isAdmin,
+        update: isAdmin,
+      }
+      collection.fields = collection.fields.map((field: any) =>
+        'name' in field && field.name === 'user'
+          ? { ...field, access: { create: isAdmin as any, update: isAdmin as any } }
+          : field,
+      )
+      return collection
+    },
   }),
 ]
